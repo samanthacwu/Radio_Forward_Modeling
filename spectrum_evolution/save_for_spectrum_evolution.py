@@ -20,15 +20,14 @@ parser.add_argument('--Bfield',type=bool,default=False,help='Whether to plot Bfi
 parser.add_argument('--eps_B',type=float,default=1e-2,help='value of epsilon_B (B field efficiency)')
 
 args = parser.parse_args()
-model_dir = args.model_dir
 evolve_shock_dir = args.evolve_shock_dir
-data_dir = args.data_dir
-datafile_name = args.filename
+data_dir = args.data_dir+'/'
+datafile_name = '/' + args.filename 
 
 print(evolve_shock_dir.split('/')[-2])
 print('loading',evolve_shock_dir+datafile_name)
 
-if model_dir=='' or evolve_shock_dir=='':
+if evolve_shock_dir=='':
     print('Please provide evolve shock directory')
     sys.exit()
 
@@ -53,13 +52,15 @@ rhofl_2 = shell_data[:,6] #g/cm^3
 
 
 #python evolution.py './2.898M_Porb10/density_prof.npz' --dt_in=1e-2 --E=1e51 --max_step=50000 --print_int=1000 --tf=250
-plt.plot(rsh/215/Rsun,vsh/1e5)
+plt.plot(rsh/215/Rsun,vsh/1e5,color='black',ls=':',label=r'$v_{\rm sh}$')
 plt.plot(rsh/215/Rsun, deltav_1/1e5,color='crimson',label=r'$\Delta v_{1}$')
 plt.plot(rsh/215/Rsun, deltav_2/1e5,color='dodgerblue',label=r'$\Delta v_{2}$')
 # plt.scatter(rsh/215/Rsun,vsh/1e5,s=10,marker='x',c='tab:olive')
 plt.xscale('log')
+plt.yscale('log')
 plt.xlabel('radius (AU)')
 plt.ylabel('shell velocity (km/s)')
+plt.legend()
 plt.show()
 plt.close()
 print('Initial shell velocity',vsh[0]/1e5,'initial time (s)',times[0:2])
@@ -68,13 +69,13 @@ print('Initial shell velocity',vsh[0]/1e5,'initial time (s)',times[0:2])
 # plt.plot(r_test/Rsun/215,rho_test,label='full density profile')
 plt.plot(rsh/215/Rsun,rhofl_1,label='density traversed by shock 1')
 plt.plot(rsh/215/Rsun,rhofl_2,label='density traversed by shock 2')
-plt.plot(rsh/Rsun/215,6e11*rsh**(-2),label=r'$r^{-2}$ wind')
+plt.plot(rsh/Rsun/215,6e11*rsh**(-2),label=r'$r^{-2}$ wind',color='black',ls=':')
 # plt.axvline(5e2)
 plt.yscale('log')
 plt.xscale('log')
 plt.xlabel('radius (AU)')
 plt.ylabel(r'density (g/cm$^3$)')
-plt.ylim(1e-30,1e-5)
+plt.ylim(1e-30,1e-12)
 plt.legend()
 plt.show()
 plt.close()
@@ -88,7 +89,7 @@ plt.yscale('log')
 plt.xscale('log')
 plt.xlabel('Time (yr)')
 plt.ylabel(r'density (g/cm$^3$)')
-plt.ylim(1e-30,1e-5)
+plt.ylim(1e-30,1e-12)
 plt.legend()
 plt.show()
 plt.close()
