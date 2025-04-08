@@ -95,14 +95,15 @@ for flare in flare_numbers:
     n0_of_t = n0(eps_E=eps_E,gamma_min=1,rho=rho_of_t,vel=vsh_of_t,p=p) 
 
     #create interpolating functions vs. time
+    vsh_tot_func = interp1d(times,vsh_orig,kind='linear')
     vsh_func = interp1d(times,vsh_of_t,kind='linear')
     rsh_func = interp1d(times,rsh_of_t,kind='linear')
     B_func = interp1d(times,B_of_t,kind='linear')
     n0_func = interp1d(times,n0_of_t,kind='linear')
 
     print(len(times),len(B_of_t),len(vsh_of_t))
-    def dot_gamma_e_ad(gamma_e,t,vsh_func,rsh_func):
-        return -(vsh_func(t)/rsh_func(t)) * gamma_e
+    def dot_gamma_e_ad(gamma_e,t,vsh_tot_func,rsh_func):
+        return -(vsh_tot_func(t)/rsh_func(t)) * gamma_e
     def dot_gamma_e_rad(gamma_e,t,B_func):
         return -((sigma_T.cgs.value * B_func(t)**2)/(6 * np.pi * m_e.cgs.value * c.cgs.value)) * gamma_e**2
     def q_e(gamma_e,t,vsh_func,rsh_func,n0_func,p=p,f_omega=1):
@@ -125,12 +126,12 @@ for flare in flare_numbers:
     # adjust_const = 1e30 #1e17
 
 
-    dot_gamma_e_ad_of_t = partial(dot_gamma_e_ad,vsh_func=vsh_func,rsh_func=rsh_func)
+    dot_gamma_e_ad_of_t = partial(dot_gamma_e_ad,vsh_tot_func=vsh_tot_func,rsh_func=rsh_func)
     dot_gamma_e_rad_of_t = partial(dot_gamma_e_rad,B_func=B_func)
     q_e_of_t = partial(q_e,vsh_func=vsh_func,rsh_func=rsh_func,n0_func=n0_func,p=3,f_omega=f_omega)
 
     #nondimensionalize to initial values of vsh, rsh, and initial dynamical time t_dyn ~ rsh/vsh
-    vsh_t0 = vsh_of_t[0]
+    vsh_t0 = vsh_orig[0]
     rsh_t0 = rsh_of_t[0]
     tdyn_t0 = rsh_t0/vsh_t0
     #also scale N by initial value N_t0 = n0_t0 * rsh_t0**3
@@ -138,6 +139,7 @@ for flare in flare_numbers:
     N_t0 = n0_t0 * rsh_t0**3
     #now new time is t' = t/tdyn_t0, new n0' = n0/n0_t0, new N' = N/(N_t0)
     #create non-dimensional interpolating functions vs. time, time is now in units of tdyn_t0
+    vsh_tot_func_ND = interp1d(times/tdyn_t0,vsh_tot_func(times)/vsh_t0,kind='linear')
     vsh_func_ND = interp1d(times/tdyn_t0,vsh_of_t/vsh_t0,kind='linear')
     rsh_func_ND = interp1d(times/tdyn_t0,rsh_of_t/rsh_t0,kind='linear')
     n0_func_ND = interp1d(times/tdyn_t0,n0_of_t/n0_t0,kind='linear')
@@ -149,7 +151,7 @@ for flare in flare_numbers:
     print('minimum time', times[0]/tdyn_t0,'initial B field',B_func(times[0]/tdyn_t0),B_of_t[0],'max time',times[-1]/tdyn_t0)
 
     #time dependent coefficients for heating and cooling terms
-    c1 = lambda t: -vsh_func_ND(t)/rsh_func_ND(t) #/adjust_const
+    c1 = lambda t: -vsh_tot_func_ND(t)/rsh_func_ND(t) #/adjust_const
     c2 = lambda t: coeff_rad_ND(t) #/adjust_const
     c3 = lambda t: 4 * np.pi * rsh_func_ND(t)**2 * vsh_func_ND(t) * n0_func_ND(t) #/adjust_const
 
