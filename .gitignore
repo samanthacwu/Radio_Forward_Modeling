@@ -1,6 +1,6 @@
 *.npy
 *.npz
-*.txt
+# *.txt
 *.pdf
 
 # Byte-compiled / optimized / DLL files
