@@ -138,7 +138,7 @@ for i, delta_t in enumerate(deltat_arr):
 	ax3.plot((t_arr-t0)/yr_to_sec, Msh_arr/Msun, ls=ls_arr[i], color=color_array[i])
 	ax4.plot((t_arr-t0)/yr_to_sec, dMdt_arr*yr_to_sec/Msun, ls=ls_arr[i], color=color_array[i])
 	# save shell parameters
-	np.savetxt('shell_evolution_deltat_%gyr.txt' % (delta_t/yr_to_sec), np.c_[t_arr, rsh_arr, vsh_arr, vsh_arr-v1_arr, v2_arr-vsh_arr, rho1_arr, rho2_arr], header='Mfl=%gMsun, vmin=%gc, vmax=%gc, power-law-index=%g\ntime [s], rsh [cm], vsh [cm/s], Deltav_1 [cm/s], Deltav_2 [cm/s], rhofl_1 [g/cm3], rhofl_2 [g/cm3], int_rhosq_1dr [g^2/cm^5]' % (M_flare/Msun, v_min/c, v_max/c, p), fmt='%.8g')
+	np.savetxt('shell_evolution_deltat_%gyr.txt' % (delta_t/yr_to_sec), np.c_[t_arr, rsh_arr, vsh_arr, vsh_arr-v1_arr, v2_arr-vsh_arr, rho1_arr, rho2_arr,rho1sq_int_arr], header='Mfl=%gMsun, vmin=%gc, vmax=%gc, power-law-index=%g\ntime [s], rsh [cm], vsh [cm/s], Deltav_1 [cm/s], Deltav_2 [cm/s], rhofl_1 [g/cm3], rhofl_2 [g/cm3], int_rhosq_1dr [g^2/cm^5]' % (M_flare/Msun, v_min/c, v_max/c, p), fmt='%.8g')
 
 # finish
 ax1.legend()
