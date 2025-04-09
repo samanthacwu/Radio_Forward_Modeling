@@ -139,7 +139,7 @@ for flare in flare_numbers:
     N_t0 = n0_t0 * rsh_t0**3
     #now new time is t' = t/tdyn_t0, new n0' = n0/n0_t0, new N' = N/(N_t0)
     #create non-dimensional interpolating functions vs. time, time is now in units of tdyn_t0
-    vsh_tot_func_ND = interp1d(times/tdyn_t0,vsh_tot_func(times)/vsh_t0,kind='linear')
+    vsh_tot_func_ND = interp1d(times/tdyn_t0,vsh_orig/vsh_t0,kind='linear')
     vsh_func_ND = interp1d(times/tdyn_t0,vsh_of_t/vsh_t0,kind='linear')
     rsh_func_ND = interp1d(times/tdyn_t0,rsh_of_t/rsh_t0,kind='linear')
     n0_func_ND = interp1d(times/tdyn_t0,n0_of_t/n0_t0,kind='linear')
