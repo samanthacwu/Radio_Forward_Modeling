@@ -1,3 +1,5 @@
+#### this is outdated ###
+
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.constants import sigma_T,m_e,c

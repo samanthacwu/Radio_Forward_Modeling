@@ -25,12 +25,12 @@ args = parser.parse_args()
 data_dir = args.data_dir
 evolve_shock_dir = args.evolve_shock_dir
 model_dir = args.model_dir
-dNdgamma_dir = args.dNdgamma_dir
+dNdgamma_over_dir = args.dNdgamma_dir
 f_omega = args.f_omega
 eps_E = args.eps_E
 eps_B = args.eps_B
 p = args.p_exp
-
+T_e_csm = args.Te_csm #K
 
 km_s = 1e5 #* cm/s
 G = 6.67430e-8
@@ -41,16 +41,6 @@ Rsun = 6.96e10
 secinyear = 3.154e7
 secinday = 86400
 
-vels=np.load(evolve_shock_dir + 'shock_vels.npy')
-rshocks=np.load(evolve_shock_dir + 'rshocks.npy')
-Mencs=np.load(evolve_shock_dir + 'Mencs.npy')
-times=np.load(evolve_shock_dir + 'times.npy')
-dts=np.load(evolve_shock_dir + 'dts.npy')
-
-rho_test = np.load(model_dir+'density_prof.npz')['rho']
-r_test = np.load(model_dir+'density_prof.npz')['r']
-density_interp = interp1d(r_test,rho_test,kind='linear')
-
 def B(eps_B,rho,vel): #inputs in CGS
     return np.sqrt(8*np.pi*eps_B*rho*vel**2) #in Gauss
 #assuming gamma_max -> infty, normalization of dn/dgamma = n0 * gamma^-p is:
@@ -59,84 +49,6 @@ def n0(eps_E,gamma_min,rho,vel,p=p): #this is number density for the energy dist
 #usually assume gamma_min=1
 #adopt p=3 also
 dndgamma_func = lambda gamma,n0_const,p: n0_const*gamma**(-p)
-
-shock_data = np.load(data_dir + 'shock_data.npz')
-times_orig = shock_data['times']
-vsh_of_t = shock_data['vsh_of_t']
-rsh_of_t = shock_data['rsh_of_t']
-rho_of_t = shock_data['rho_of_t']
-
-
-if args.B_field_prof == 'None':
-    B_of_t = B(eps_B=eps_B,rho=rho_of_t,vel=vsh_of_t)
-    times_t = times_orig
-    ind_start=0
-elif args.B_field_prof != 'None':
-    B_data = np.load(data_dir+args.B_field_prof)
-    B_of_t = B_data['B_vals']
-    B_of_t[0] = B_of_t[1]
-    times_t = B_data['times']
-    ind_start = int(len(times_orig)-len(times_t))
-    
-    vsh_of_t = vsh_of_t[ind_start:]
-    rsh_of_t = rsh_of_t[ind_start:]
-    rho_of_t = rho_of_t[ind_start:]
-    print(ind_start,len(times_t),len(vsh_of_t))
-
-n0_of_t = n0(eps_E=eps_E,gamma_min=1,rho=rho_of_t,vel=vsh_of_t,p=p) 
-# B_of_t = B(eps_B=1e-2,rho=rho_of_t,vel=vsh_of_t)
-#nondimensionalize to initial values of vsh, rsh, and initial dynamical time t_dyn ~ rsh/vsh
-adjust_const = 1 #1e-12
-vsh_t0 = vsh_of_t[0]
-rsh_t0 = rsh_of_t[0]
-tdyn_t0 = rsh_t0/vsh_t0
-#also scale N by initial value N_t0 = n0_t0 * rsh_t0**3
-n0_t0 = n0_of_t[0]
-N_t0 = n0_t0 * rsh_t0**3
-
-vsh_func_ND = interp1d(times_t/tdyn_t0,vsh_of_t/vsh_t0,kind='linear')
-rsh_func_ND = interp1d(times_t/tdyn_t0,rsh_of_t/rsh_t0,kind='linear')
-n0_func_ND = interp1d(times_t/tdyn_t0,n0_of_t/n0_t0,kind='linear')
-
-B_func = interp1d(times_t/tdyn_t0,B_of_t,kind='linear')
-coeff_rad_ND = lambda t: -((sigma_T.cgs.value * B_func(t)**2)/(6 * np.pi * m_e.cgs.value * c.cgs.value))*tdyn_t0
-
-print("initial dynamical time, shock radius, shock velocity, normalization constant", 
-      f'{tdyn_t0:1.3E} s, {rsh_t0:1.3E} cm,{vsh_t0:1.3E} cm/s,{n0_t0:1.3E} cm^-3')
-print('minimum time', times_t[0]/tdyn_t0,'maximum time', times_t[-1]/tdyn_t0, 'tdyn', times_t[-1]/secinyear, 'yr')
-
-#time dependent coefficients for heating and cooling terms
-c1 = lambda t: -vsh_func_ND(t)/rsh_func_ND(t)/adjust_const
-c2 = lambda t: coeff_rad_ND(t)/adjust_const
-c3 = lambda t: 4 * np.pi * rsh_func_ND(t)**2 * vsh_func_ND(t) * n0_func_ND(t)/adjust_const
-
-
-print('c1',c1(times_t[0]/tdyn_t0),'c2',c2(times_t[0]/tdyn_t0), 'c3',c3(times_t[0]/tdyn_t0) )
-
-# delta_gamma = 100
-delta_gamma = 1e-3 # not using even spacing
-gamma_max = 1e8 #actually calculate this
-gamma_min = 1
-N_g = 256
-d_ln_gamma = (np.log(gamma_max) - np.log(gamma_min))/N_g
-# gamma_e_vals = np.arange(gamma_min,gamma_max,delta_gamma)
-gamma_e_vals = np.zeros(N_g)
-gamma_e_vals[0] = gamma_min
-for i in np.arange(1,N_g):
-    gamma_e_vals[i] = gamma_e_vals[i-1] + (np.exp(d_ln_gamma)-1)*gamma_e_vals[i-1]
-delta_gamma_e = gamma_e_vals*(np.exp(d_ln_gamma)-1)
-
-dt_scale_sim = 1e-3
-
-dts = np.load(dNdgamma_dir+'/dts.npy')
-tvals=np.load(dNdgamma_dir+'/times.npy')
-yvals=np.load(dNdgamma_dir+'/yvals.npz')['arr_0'].reshape((len(tvals),len(gamma_e_vals)))
-#convert yvals to the right units
-dNdgamma_vals = yvals * n0_t0 * rsh_t0**3
-print('normalization',n0_t0 * rsh_t0**3)
-tdyn_of_t_sim = dts/dt_scale_sim
-
-tvals_sec = tvals*tdyn_t0
 
 #  Synchrotron emission 
 def syn_func_fit(x):
@@ -167,7 +79,7 @@ sin_alpha = 2./3. # angle averaged s.t. sin_alpha -> 2/3
 omega_c = lambda B,gamma: 3 * gamma**2 * e.gauss.value * B * sin_alpha/(2*m_e.cgs.value*c.cgs.value)
 
 #photon energies
-gamma_ph_min = 1.5e-14
+gamma_ph_min = 1.5e-18 #1.5e-14
 gamma_ph_max = 1.5
 N_ph = 256
 d_ln_gamma_ph = (np.log(gamma_ph_max)-np.log(gamma_ph_min))/(N_ph-1)
@@ -180,13 +92,11 @@ for i in np.arange(1,N_ph):
 nu_ph_vals = gamma_ph_vals*m_e.cgs.value*c.cgs.value**2/h.cgs.value
 
 sync_x_vals = lambda B,gamma: nu_ph_vals/(omega_c(B,gamma)/2*np.pi)
-
+print("minimum nu_ph",nu_ph_vals[0],'maximum nu_ph',nu_ph_vals[-1])
 #defined above:
 # nu_ph_vals = gamma_ph_vals*m_e.cgs.value*c.cgs.value**2/h.cgs.value
 
 # sync_x_vals = lambda B,gamma: nu_ph_vals/(omega_c(B,gamma)/2*np.pi)
-from scipy.integrate import quad
-rhoshock_func = interp1d(times_t/tdyn_t0,rho_of_t,kind='linear')
 #dNdgamma_vals should be yvals returned to correct units
 def emission_absorption_at_time(t,dNdgamma_vals,gamma_e_vals,delta_gamma_e,f_omega=1):
     #time should be in units of tdyn_t0
@@ -227,144 +137,212 @@ def emission_absorption_at_time(t,dNdgamma_vals,gamma_e_vals,delta_gamma_e,f_ome
 
 def Lnu_obs_spectrum(Lnu_syn,tau_ff,tau_ssa):
     return Lnu_syn*np.exp(-tau_ff)*(1-np.exp(-tau_ssa))/tau_ssa
-T_e_csm = args.Te_csm #K
-def tau_ff(t,density_profile,radii,r_out,nu_ph,T_e_csm=1e5,verbose=True): 
+
+def tau_ff(densitysq_integral,nu_ph,T_e_csm=1e4,verbose=True): 
     #need to integrate alpha_ff for all densities outside r_shock(t). uints of t should be in t_dyn_t0 (or use other interp fn?)
-    Z=2
+    # Z=2
+    # assuming X=0.7, Y=0.3
+    mu_e = (0.7+0.5*0.3)**(-1)
     # T_e_csm = 1e5 #K
     nu_scale = 10*1e9 #10 GHz
-    alpha_ff_arr = 8.4e-28 * Z**2 * density_profile**2/(8*m_p.cgs.value**2) * (T_e_csm/1e4)**(-1.35) * (nu_ph/nu_scale)**(-2.1)
-    alpha_ff_func = interp1d(radii,alpha_ff_arr,kind='linear')
-    if verbose:
-        plt.plot(radii,alpha_ff_arr)
-        plt.scatter(rsh_func_ND(t)*rsh_t0,alpha_ff_func(rsh_func_ND(t)*rsh_t0))
-        plt.grid()
-        plt.yscale('log')
-        plt.xscale('log')
-        print('alpha_ff(r(t))', alpha_ff_func(rsh_func_ND(t)*rsh_t0))
-    ans,err = quad(alpha_ff_func,rsh_func_ND(t)*rsh_t0,r_out,limit=10000)
-    if verbose:
-        print('error/ans', err/ans)
-    print_once = False
-    if err/ans > 1e-2:
-        if verbose:
-            print('warning: error in tau_ff integration is large', err/ans,'nu',nu_ph)
+    tau_ff_arr = 8.4e-28 * (T_e_csm/1e4)**(-1.35) * (nu_ph/nu_scale)**(-2.1) * densitysq_integral/(mu_e*m_p.cgs.value**2)
+    # tau_ff_func = interp1d(radii,tau_ff_arr,kind='linear')
+    return tau_ff_arr #array vs. nu_ph
 
-    return ans
 
-# plt.figure()
-# colors = plt.cm.viridis(np.linspace(0,1,15))
-# count = 0
-# tau_ff_test_grid = np.zeros((15,len(nu_ph_vals)))
-# for t in tvals:
-# #times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
-#     # count+=1
-#     # if count < 100 and count % 10 ==0:
-#     if count > 7000 and count % 600 ==0:
-#         print(count, t)
-#         tau_ff_test = np.zeros_like(nu_ph_vals)
-#         for i,nu in enumerate(nu_ph_vals):
-#             tau_ff_test[i] = tau_ff(t,density_interp(rshocks),rshocks,rshocks[-1],nu,T_e_csm=T_e_csm,verbose=False)
-#         tau_ff_test_grid[int((count-7000)/600)] = tau_ff_test
-#         plt.plot(nu_ph_vals,tau_ff_test,color=colors[int((count-7000)/600)])
-#     count +=1
-# plt.yscale('log')
-# plt.xscale('log')
-# plt.ylim(1e20,1e30)
-# plt.xlim(1e-2,1000)
-# plt.axvspan(2,4,color='gray',alpha=0.5)
-# plt.axhspan(1e26,1e29,color='gray',alpha=0.5)
+## Loading shock data and calculating emission for each flare
+data_dir = args.data_dir
+shock_data = np.load(data_dir + 'shock_data.npz')
+times_orig = shock_data['times']
+vsh_orig = shock_data['vsh_of_t']
+rsh_of_t = shock_data['rsh_of_t']
+rho1_of_t = shock_data['rho1_of_t']
+rho2_of_t = shock_data['rho2_of_t']
+deltav1_of_t = shock_data['deltav1_of_t']
+deltav2_of_t = shock_data['deltav2_of_t']
+intrhofl1sqdr = shock_data['int_rhofl_1_sq_dr']
 
-# fig=plt.figure()
+intrhofl1sqdr_vs_t = interp1d(times_orig,intrhofl1sqdr,kind='linear')
 
-# colors = plt.cm.viridis(np.linspace(0,1,15))
-norm = LogNorm(vmin=tvals[1000]*tdyn_t0/secinyear, vmax=tvals[-1]*tdyn_t0/secinyear)
-count = 0
-tau_ff_test_grid = np.zeros((15,len(nu_ph_vals)))
-for t in tvals:
-#times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
-    # count+=1
-    # if count < 100 and count % 10 ==0:
-    if count % 600 ==0:
-        print(count, t)
-        Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[count],dNdgamma_vals[count],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
-        tau_ff_test = tau_ff_test_grid[int((count-7000)/600)]
-        
-        plt.plot(nu_ph_vals/1e9,Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)))
-    count +=1
-plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
-plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='black',ls='--',label=r'$\nu^{-1}$')
-sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
-plt.colorbar(sm,label='Time (yr)')
-plt.yscale('log')
-plt.xscale('log')
-# plt.axvspan(2,4,color='gray',alpha=0.5)
-# plt.axhspan(1e26,1e29,color='gray',alpha=0.5)
-plt.legend()
-plt.xlim(0.1,1e6)
-plt.ylim(1e20,1e30)
-plt.xlabel(r'$\nu$ (GHz)')
-plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
-plt.savefig('Radio_curves_vs_frequency.png',dpi=300,transparent=False,facecolor='white')
-# # plt.title('Both SSA and FF')
-# print(nu_ph_vals[np.where((nu_ph_vals > 1e10) & (nu_ph_vals < 10e10))])
-freq_to_plot = 15e10 #3 GH
+flare_numbers = [0,1]
+for flare in flare_numbers:
+    if flare==0:
+        rho_of_t = rho1_of_t
+        vsh_of_t = deltav1_of_t
+        dNdgamma_dir = dNdgamma_over_dir + '/flare1/'
+    elif flare==1:
+        rho_of_t = rho2_of_t
+        vsh_of_t = deltav2_of_t
+        dNdgamma_dir = dNdgamma_over_dir + '/flare2/'
+    print('flare',flare+1,'dNdgamma_dir',dNdgamma_dir)
 
-plt.figure()
-colors = plt.cm.viridis(np.linspace(0,1,15))
-count = 0
-tau_ff_atfreq= np.zeros_like(tvals)
-Lnu_atfreq = np.zeros_like(tvals)
-tau_ssa_atfreq = np.zeros_like(tvals)
-index_atfreq=np.where(np.abs(nu_ph_vals-freq_to_plot)/freq_to_plot < 0.06)[0]
-nu_in = nu_ph_vals[index_atfreq] # 3 GHz
-print('nu_in',nu_in,'given frequency',freq_to_plot)
-times_out = np.zeros_like(tvals)
-j=0
-for i,t in enumerate(tvals):
-#times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
-    # count+=1
-    # if count < 100 and count % 10 ==0:
-    # if count > 7000 and count % 600 ==0:
-    #     print(count, t)
-    if i % 100 ==0:
-        # print(i)
-        # for i,nu in enumerate(nu_ph_vals):
-        tau_ff_atfreq[j] = tau_ff(t,density_interp(rshocks),rshocks,rshocks[-1],nu_in,T_e_csm=T_e_csm,verbose=False)
+    if args.B_field_prof == 'None':
+        B_of_t = B(eps_B=eps_B,rho=rho_of_t,vel=vsh_of_t)
+        times = times_orig
+        ind_start=0
+    elif args.B_field_prof != 'None':
+        B_data = np.load(data_dir+args.B_field_prof)
+        B_of_t = B_data['B_vals']
+        print(B_of_t)
+        B_of_t[0] = B_of_t[1]
+        times = B_data['times']
+        ind_start = int(len(times_orig)-len(times))
+        print(ind_start)
+        vsh_of_t = vsh_of_t[ind_start:]
+        rsh_of_t = rsh_of_t[ind_start:]
+        rho_of_t = rho_of_t[ind_start:]
 
-        # index_3ghz=np.where(np.abs(nu_ph_vals-3e10)/3e10 < 0.05)[0]
-        Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[i],dNdgamma_vals[i],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
-        Lnu_atfreq[j] = Lnu_test[index_atfreq]
-        tau_ssa_atfreq[j] = tau_ssa_test[index_atfreq]
-        times_out[j] = t
-        j+=1
-    # count +=1
-# print(i)
-        
-tau_ff_atfreq= np.trim_zeros(tau_ff_atfreq)
-Lnu_atfreq = np.trim_zeros(Lnu_atfreq)
-tau_ssa_atfreq = np.trim_zeros(tau_ssa_atfreq)
-times_out = np.trim_zeros(times_out)
-# print(tau_ssa_atfreq)
-Lnu_abs_atfreq = Lnu_atfreq*np.exp(-tau_ff_atfreq)*(1-np.exp(-tau_ssa_atfreq))/tau_ssa_atfreq
-plt.plot(times_out*tdyn_t0/secinyear,Lnu_atfreq*np.exp(-tau_ff_atfreq)*(1-np.exp(-tau_ssa_atfreq))/tau_ssa_atfreq)
-#,color=colors[int((count-7000)/600)])
-plt.yscale('log')
-plt.xscale('log')
-plt.xlim(1e-4,2)
-plt.ylim(1e20,1e30)
-# plt.xscale('log')
-plt.xlabel('Time (yr)')
-plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
-plt.title(f'Emission at {freq_to_plot/1e10:1.2f} GHz')
-# plt.ylim(1e20,1e30)
-# plt.xlim(1e-2,1000)
-# plt.axvspan(2,4,color='gray',alpha=0.5)
-# plt.axhspan(1e26,1e29,color='gray',alpha=0.5)
-# plt.axvspan(5,20,color='gray',alpha=0.5)
-plt.savefig(f'Radio_curve_{freq_to_plot/1e10:1.2f}GHz.png',dpi=300,transparent=False,facecolor='white')
+    n0_of_t = n0(eps_E=eps_E,gamma_min=1,rho=rho_of_t,vel=vsh_of_t,p=p) 
+# B_of_t = B(eps_B=1e-2,rho=rho_of_t,vel=vsh_of_t)
+#nondimensionalize to initial values of vsh, rsh, and initial dynamical time t_dyn ~ rsh/vsh
+    adjust_const = 1 #1e-12
+    vsh_t0 = vsh_orig[0]
+    rsh_t0 = rsh_of_t[0]
+    tdyn_t0 = rsh_t0/vsh_t0
+    #also scale N by initial value N_t0 = n0_t0 * rsh_t0**3
+    n0_t0 = n0_of_t[0]
+    N_t0 = n0_t0 * rsh_t0**3
+    #now new time is t' = t/tdyn_t0, new n0' = n0/n0_t0, new N' = N/(N_t0)
+    #create non-dimensional interpolating functions vs. time, time is now in units of tdyn_t0
+    vsh_tot_func_ND = interp1d(times/tdyn_t0,vsh_orig/vsh_t0,kind='linear')
+    vsh_func_ND = interp1d(times/tdyn_t0,vsh_of_t/vsh_t0,kind='linear')
+    rsh_func_ND = interp1d(times/tdyn_t0,rsh_of_t/rsh_t0,kind='linear')
+    n0_func_ND = interp1d(times/tdyn_t0,n0_of_t/n0_t0,kind='linear')
+    B_func = interp1d(times/tdyn_t0,B_of_t,kind='linear')
 
-#times_sec should be times_yr in the other file too, oops
-np.savez(dNdgamma_dir+f'Lnu_{freq_to_plot/1e10:1.2f}GHz_sparse_Te_{T_e_csm:1.1E}.npz',times_out=times_out,
-         Lnu_atfreq=Lnu_atfreq,tau_ff_atfreq=tau_ff_atfreq,tau_ssa_atfreq=tau_ssa_atfreq,
-         times_yr=times_out*tdyn_t0/secinyear,Lnu_abs_atfreq=Lnu_abs_atfreq)
+    B_func = interp1d(times/tdyn_t0,B_of_t,kind='linear')
+    coeff_rad_ND = lambda t: -((sigma_T.cgs.value * B_func(t)**2)/(6 * np.pi * m_e.cgs.value * c.cgs.value))*tdyn_t0
+
+    print("initial dynamical time, shock radius, shock velocity, normalization constant", 
+        f'{tdyn_t0:1.3E} s, {rsh_t0:1.3E} cm,{vsh_t0:1.3E} cm/s,{n0_t0:1.3E} cm^-3')
+    print('minimum time', times[0]/tdyn_t0,'maximum time', times[-1]/tdyn_t0, 'tdyn', times[-1]/secinyear, 'yr')
+
+    #time dependent coefficients for heating and cooling terms
+    c1 = lambda t: -vsh_tot_func_ND(t)/rsh_func_ND(t) #/adjust_const
+    c2 = lambda t: coeff_rad_ND(t) #/adjust_const
+    c3 = lambda t: 4 * np.pi * rsh_func_ND(t)**2 * vsh_func_ND(t) * n0_func_ND(t) #/adjust_const
+
+
+    print('c1',c1(times[0]/tdyn_t0),'c2',c2(times[0]/tdyn_t0), 'c3',c3(times[0]/tdyn_t0) )
+
+    # delta_gamma = 100
+    delta_gamma = 1e-3 # not using even spacing
+    gamma_max = 1e8 #actually calculate this
+    gamma_min = 1
+    N_g = 256
+    d_ln_gamma = (np.log(gamma_max) - np.log(gamma_min))/N_g
+    # gamma_e_vals = np.arange(gamma_min,gamma_max,delta_gamma)
+    gamma_e_vals = np.zeros(N_g)
+    gamma_e_vals[0] = gamma_min
+    for i in np.arange(1,N_g):
+        gamma_e_vals[i] = gamma_e_vals[i-1] + (np.exp(d_ln_gamma)-1)*gamma_e_vals[i-1]
+    delta_gamma_e = gamma_e_vals*(np.exp(d_ln_gamma)-1)
+
+    dt_scale_sim = 1e-3
+
+    dts = np.load(dNdgamma_dir+'/dts.npy')
+    tvals=np.load(dNdgamma_dir+'/times.npy')
+    yvals=np.load(dNdgamma_dir+'/yvals.npz')['arr_0'].reshape((len(tvals),len(gamma_e_vals)))
+    #convert yvals to the right units
+    dNdgamma_vals = yvals * n0_t0 * rsh_t0**3
+    print('normalization',n0_t0 * rsh_t0**3)
+    tdyn_of_t_sim = dts/dt_scale_sim
+
+    tvals_sec = tvals*tdyn_t0
+
+    fig=plt.figure()
+
+    # colors = plt.cm.viridis(np.linspace(0,1,15))
+    norm = LogNorm(vmin=tvals[1000]*tdyn_t0/secinyear, vmax=tvals[-1]*tdyn_t0/secinyear)
+    count = 0
+    # tau_ff_test_grid = np.zeros((15,len(nu_ph_vals)))
+    for t in tvals:
+    #times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
+        # count+=1
+        # if count < 100 and count % 10 ==0:
+        if count % 400 ==0:
+            print(count,int(count/600), t)
+            Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[count],dNdgamma_vals[count],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
+            tau_ff_test = tau_ff(intrhofl1sqdr_vs_t(tvals[count]*tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm,verbose=False)
+            
+            plt.plot(nu_ph_vals/1e9,Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)))
+        count +=1
+    plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
+    plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
+    sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
+    plt.colorbar(sm,label='Time (yr)')
+    plt.yscale('log')
+    plt.xscale('log')
+    # plt.axvspan(2,4,color='gray',alpha=0.5)
+    # plt.axhspan(1e26,1e29,color='gray',alpha=0.5)
+    plt.legend()
+    plt.xlim(1e-6,1e8)
+    plt.ylim(1e10,1e28)
+    plt.xlabel(r'$\nu$ (GHz)')
+    plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
+    plt.savefig(f'Radio_curves_vs_frequency_{flare+1}.png',dpi=300,transparent=False,facecolor='white')
+    # # plt.title('Both SSA and FF')
+    # print(nu_ph_vals[np.where((nu_ph_vals > 1e10) & (nu_ph_vals < 10e10))])
+    freq_to_plot = 15e10 #3 GH
+
+    plt.figure()
+    colors = plt.cm.viridis(np.linspace(0,1,15))
+    count = 0
+    tau_ff_atfreq= np.zeros_like(tvals)
+    Lnu_atfreq = np.zeros_like(tvals)
+    tau_ssa_atfreq = np.zeros_like(tvals)
+    index_atfreq=np.where(np.abs(nu_ph_vals-freq_to_plot)/freq_to_plot < 0.06)[0]
+    nu_in = nu_ph_vals[index_atfreq] # 3 GHz
+    print('nu_in',nu_in,'given frequency',freq_to_plot)
+    times_out = np.zeros_like(tvals)
+    j=0
+    for i,t in enumerate(tvals):
+    #times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
+        # count+=1
+        # if count < 100 and count % 10 ==0:
+        # if count > 7000 and count % 600 ==0:
+        #     print(count, t)
+        if i % 10 ==0:
+            # print(i)
+            # for i,nu in enumerate(nu_ph_vals):
+            tau_ff_test = tau_ff(intrhofl1sqdr_vs_t(t*tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm,verbose=False)
+
+            tau_ff_atfreq[j] = tau_ff_test[index_atfreq]
+            # index_3ghz=np.where(np.abs(nu_ph_vals-3e10)/3e10 < 0.05)[0]
+            Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[i],dNdgamma_vals[i],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
+            Lnu_atfreq[j] = Lnu_test[index_atfreq]
+            tau_ssa_atfreq[j] = tau_ssa_test[index_atfreq]
+            times_out[j] = t*tdyn_t0
+            j+=1
+        # count +=1
+    # print(i)
+            
+    tau_ff_atfreq= np.trim_zeros(tau_ff_atfreq)
+    Lnu_atfreq = np.trim_zeros(Lnu_atfreq)
+    tau_ssa_atfreq = np.trim_zeros(tau_ssa_atfreq)
+    times_out = np.trim_zeros(times_out)  #in seconds now
+    # print(tau_ssa_atfreq)
+    Lnu_abs_atfreq = Lnu_atfreq*np.exp(-tau_ff_atfreq)*(1-np.exp(-tau_ssa_atfreq))/tau_ssa_atfreq
+    plt.plot(times_out/secinyear,Lnu_atfreq*np.exp(-tau_ff_atfreq)*(1-np.exp(-tau_ssa_atfreq))/tau_ssa_atfreq)
+    #,color=colors[int((count-7000)/600)])
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.xlim(1e-2,2e2)
+    plt.ylim(1e10,1e28)
+    # plt.xscale('log')
+    plt.xlabel('Time (yr)')
+    plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
+    plt.title(f'Emission at {freq_to_plot/1e10:1.2f} GHz')
+    # plt.ylim(1e20,1e30)
+    # plt.xlim(1e-2,1000)
+    # plt.axvspan(2,4,color='gray',alpha=0.5)
+    # plt.axhspan(1e26,1e29,color='gray',alpha=0.5)
+    # plt.axvspan(5,20,color='gray',alpha=0.5)
+    plt.savefig(f'Radio_curve_{freq_to_plot/1e10:1.2f}GHz_{flare+1}.png',dpi=300,transparent=False,facecolor='white')
+
+    #times_sec should be times_yr in the other file too, oops
+    np.savez(dNdgamma_dir+f'Lnu_{freq_to_plot/1e10:1.2f}GHz_sparse_Te_{T_e_csm:1.1E}.npz',times_out=times_out, #in seconds
+            Lnu_atfreq=Lnu_atfreq,tau_ff_atfreq=tau_ff_atfreq,tau_ssa_atfreq=tau_ssa_atfreq,
+            times_yr=times_out/secinyear,Lnu_abs_atfreq=Lnu_abs_atfreq)
+
+print('Done with both flares')

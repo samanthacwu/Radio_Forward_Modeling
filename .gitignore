@@ -2,6 +2,7 @@
 *.npz
 # *.txt
 *.pdf
+*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -177,3 +178,4 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+spectrum_evolution/evolve_spectrum_epsB_1e-2/shell_evolution_deltat_1yr/shock_data.npz

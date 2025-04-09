@@ -48,7 +48,7 @@ deltav_1 = shell_data[:,3] #cm/s
 deltav_2 = shell_data[:,4] #cm/s
 rhofl_1 = shell_data[:,5] #g/cm^3
 rhofl_2 = shell_data[:,6] #g/cm^3
-
+int_rhofl_1_sq_dr = shell_data[:,7] #g^2/cm^5 
 
 
 #python evolution.py './2.898M_Porb10/density_prof.npz' --dt_in=1e-2 --E=1e51 --max_step=50000 --print_int=1000 --tf=250
@@ -118,7 +118,7 @@ if not args.Bfield:
     else:
         print('Directory exists')
 
-    np.savez(save_dir+'/shock_data.npz',times=times,rsh_of_t=rsh,vsh_of_t=vsh,deltav1_of_t=deltav_1,rho1_of_t=rhofl_1,deltav2_of_t=deltav_2,rho2_of_t=rhofl_2) 
+    np.savez(save_dir+'/shock_data.npz',times=times,rsh_of_t=rsh,vsh_of_t=vsh,deltav1_of_t=deltav_1,rho1_of_t=rhofl_1,deltav2_of_t=deltav_2,rho2_of_t=rhofl_2,int_rhofl_1_sq_dr=int_rhofl_1_sq_dr) 
 
 # if args.Bfield:
 #     save_dir = data_dir+evolve_shock_dir.split('/')[-2]
