@@ -108,16 +108,7 @@ def emission_absorption_at_time(t,dNdgamma_vals,gamma_e_vals,delta_gamma_e,f_ome
         gamma_e = gamma_e_vals[i]
         x_vals_tmp = sync_x_vals(B_func(t),gamma_e)
         Pnu = syn_func_fit(x_vals_tmp) * sin_alpha*np.sqrt(3)*e.gauss.value**3*B_func(t)/(m_e.cgs.value*c.cgs.value**2)
-        # if i % 50 == 0:
-        #     plt.plot(nu_ph_vals,Pnu)
-        #     plt.xscale('log')
-            # plt.yscale('log')
         L_nu_integral += Pnu*dNdgamma_vals[i]*delta_gamma_e[i]
-        # if i % 50 == 0:
-        #     plt.plot(nu_ph_vals,L_nu_integral)
-        #     plt.xscale('log')
-        #     plt.yscale('log')
-        #     plt.ylim(0.1,)
         d_dgamma_term = dNdgamma_vals[i+1]/gamma_e_vals[i+1]**2 - dNdgamma_vals[i]/gamma_e_vals[i]**2
         d_dgamma_term = d_dgamma_term/delta_gamma_e[i]
         alpha_SSA_integral += gamma_e**2 * Pnu * d_dgamma_term * delta_gamma_e[i]
@@ -140,13 +131,10 @@ def Lnu_obs_spectrum(Lnu_syn,tau_ff,tau_ssa):
 
 def tau_ff(densitysq_integral,nu_ph,T_e_csm=1e4,verbose=True): 
     #need to integrate alpha_ff for all densities outside r_shock(t). uints of t should be in t_dyn_t0 (or use other interp fn?)
-    # Z=2
     # assuming X=0.7, Y=0.3
     mu_e = (0.7+0.5*0.3)**(-1)
-    # T_e_csm = 1e5 #K
     nu_scale = 10*1e9 #10 GHz
-    tau_ff_arr = 8.4e-28 * (T_e_csm/1e4)**(-1.35) * (nu_ph/nu_scale)**(-2.1) * densitysq_integral/(mu_e*m_p.cgs.value**2)
-    # tau_ff_func = interp1d(radii,tau_ff_arr,kind='linear')
+    tau_ff_arr = 8.4e-28 * (T_e_csm/1e4)**(-1.35) * (nu_ph/nu_scale)**(-2.1) * densitysq_integral/(mu_e*m_p.cgs.value**2) 
     return tau_ff_arr #array vs. nu_ph
 
 
@@ -255,6 +243,9 @@ for flare in flare_numbers:
     # colors = plt.cm.viridis(np.linspace(0,1,15))
     norm = LogNorm(vmin=tvals[1000]*tdyn_t0/secinyear, vmax=tvals[-1]*tdyn_t0/secinyear)
     count = 0
+    Lnu_pkvals = []
+    t_pkvals = []
+    nu_pkvals = []
     # tau_ff_test_grid = np.zeros((15,len(nu_ph_vals)))
     for t in tvals:
     #times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
@@ -264,8 +255,14 @@ for flare in flare_numbers:
             print(count,int(count/600), t)
             Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[count],dNdgamma_vals[count],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
             tau_ff_test = tau_ff(intrhofl1sqdr_vs_t(tvals[count]*tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm,verbose=False)
-            
-            plt.plot(nu_ph_vals/1e9,Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)))
+            Lnu_spectrum = Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test
+            argmax,Lnumax = (np.argmax(Lnu_spectrum),np.amax(Lnu_spectrum))
+            # print(nu_ph_vals[argmax]/1e9,Lnumax)
+            Lnu_pkvals.append(Lnumax)
+            nu_pkvals.append(nu_ph_vals[argmax])
+            t_pkvals.append(t*tdyn_t0/secinyear)
+            plt.plot(nu_ph_vals/1e9,Lnu_spectrum,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)))
+            # plt.scatter(nu_ph_vals[argmax]/1e9,Lnumax,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)),s=40)
         count +=1
     plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
     plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
@@ -283,7 +280,10 @@ for flare in flare_numbers:
     plt.savefig(f'Radio_curves_vs_frequency_{flare+1}.png',dpi=300,transparent=False,facecolor='white')
     # # plt.title('Both SSA and FF')
     # print(nu_ph_vals[np.where((nu_ph_vals > 1e10) & (nu_ph_vals < 10e10))])
-    freq_to_plot = 15e10 #3 GH
+
+    np.savez(dNdgamma_dir+f'peak_data.npz',Lnu_pk=np.array(Lnu_pkvals),t_pk=np.array(t_pkvals),nu_pk=np.array(nu_pkvals))
+
+    freq_to_plot = 15e9 #3 GH
 
     plt.figure()
     colors = plt.cm.viridis(np.linspace(0,1,15))
@@ -291,7 +291,7 @@ for flare in flare_numbers:
     tau_ff_atfreq= np.zeros_like(tvals)
     Lnu_atfreq = np.zeros_like(tvals)
     tau_ssa_atfreq = np.zeros_like(tvals)
-    index_atfreq=np.where(np.abs(nu_ph_vals-freq_to_plot)/freq_to_plot < 0.06)[0]
+    index_atfreq=np.argmin(np.abs(nu_ph_vals-freq_to_plot)/freq_to_plot )
     nu_in = nu_ph_vals[index_atfreq] # 3 GHz
     print('nu_in',nu_in,'given frequency',freq_to_plot)
     times_out = np.zeros_like(tvals)
@@ -332,16 +332,16 @@ for flare in flare_numbers:
     # plt.xscale('log')
     plt.xlabel('Time (yr)')
     plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
-    plt.title(f'Emission at {freq_to_plot/1e10:1.2f} GHz')
+    plt.title(f'Emission at {freq_to_plot/1e9:1.2f} GHz')
     # plt.ylim(1e20,1e30)
     # plt.xlim(1e-2,1000)
     # plt.axvspan(2,4,color='gray',alpha=0.5)
     # plt.axhspan(1e26,1e29,color='gray',alpha=0.5)
     # plt.axvspan(5,20,color='gray',alpha=0.5)
-    plt.savefig(f'Radio_curve_{freq_to_plot/1e10:1.2f}GHz_{flare+1}.png',dpi=300,transparent=False,facecolor='white')
+    plt.savefig(f'Radio_curve_{freq_to_plot/1e9:1.2f}GHz_{flare+1}.png',dpi=300,transparent=False,facecolor='white')
 
     #times_sec should be times_yr in the other file too, oops
-    np.savez(dNdgamma_dir+f'Lnu_{freq_to_plot/1e10:1.2f}GHz_sparse_Te_{T_e_csm:1.1E}.npz',times_out=times_out, #in seconds
+    np.savez(dNdgamma_dir+f'Lnu_{freq_to_plot/1e9:1.2f}GHz_sparse_Te_{T_e_csm:1.1E}.npz',times_out=times_out, #in seconds
             Lnu_atfreq=Lnu_atfreq,tau_ff_atfreq=tau_ff_atfreq,tau_ssa_atfreq=tau_ssa_atfreq,
             times_yr=times_out/secinyear,Lnu_abs_atfreq=Lnu_abs_atfreq)
 
