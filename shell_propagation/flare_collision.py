@@ -21,8 +21,8 @@ v_max = c/6.**0.5 # ISCO for a Schwarzschild BH
 v_min = 0.05 * c
 M_flare = 1e-2 * Msun
 
-# deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
-deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
+deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
+# deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
 
 # flare density profile
 def rho_flare(r, t, A_norm, v_min, v_max): 
@@ -75,6 +75,7 @@ else:
 	print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5/(2.-2.*p) * (1.-(v_max/v_min)**(2.*p-2.))))
 
 for i, delta_t in enumerate(deltat_arr):
+	
 	# initial conditions at collision
 	t0 = v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
 	Msh_0 = 0.0
@@ -139,27 +140,27 @@ for i, delta_t in enumerate(deltat_arr):
 	ax4.plot((t_arr-t0)/yr_to_sec, dMdt_arr*yr_to_sec/Msun, ls=ls_arr[i], color=color_array[i])
 	# save shell parameters
 	np.savetxt('shell_evolution_deltat_%gyr.txt' % (delta_t/yr_to_sec), np.c_[t_arr, rsh_arr, vsh_arr, vsh_arr-v1_arr, v2_arr-vsh_arr, rho1_arr, rho2_arr,rho1sq_int_arr], header='Mfl=%gMsun, vmin=%gc, vmax=%gc, power-law-index=%g\ntime [s], rsh [cm], vsh [cm/s], Deltav_1 [cm/s], Deltav_2 [cm/s], rhofl_1 [g/cm3], rhofl_2 [g/cm3], int_rhosq_1dr [g^2/cm^5]' % (M_flare/Msun, v_min/c, v_max/c, p), fmt='%.8g')
+	# plot v1, v2, vshell
 
+	fig0,ax0 = plt.subplots()
+	ax0.set_xlabel(r'time from collision [yr]')
+	ax0.set_ylabel(r'velocity [$c$]')
+	ax0.set_xlim(1e-3, 1e2)
+	ax0.set_xscale('log')
+	ax0.set_title('$\Delta t=%g$ yr' % (delta_t/yr_to_sec))
+	ax0.grid(linestyle=':')
+	ax0.plot((t_arr-t0)/yr_to_sec, vsh_arr/c, color=color_array[i], label=r'$v_{\rm sh}$')
+	ax0.plot((t_arr-t0)/yr_to_sec, v1_arr/c, linestyle='dashed', color=color_array[i+1], label=r'$v_1=r_{\rm sh}/(t+\Delta t)$')
+	ax0.plot((t_arr-t0)/yr_to_sec, v2_arr/c, linestyle='dotted', color=color_array[i+2], label=r'$v_2=r_{\rm sh}/t$')
+	ax0.legend()
+	fig0.tight_layout()
+	fig0.savefig('velocity_evolution_%gyr.pdf' % (delta_t/yr_to_sec))
 # finish
 ax1.legend()
 ax2.legend()
 ax3.legend()
-plt.tight_layout()
-plt.savefig('shell_evolution.pdf')
+fig.tight_layout()
+fig.savefig('shell_evolution.pdf')
 
 
-# plot v1, v2, vshell
 
-plt.figure()
-plt.xlabel(r'time from collision [yr]')
-plt.ylabel(r'velocity [$c$]')
-plt.xlim(1e-3, 1e2)
-plt.xscale('log')
-plt.title('$\Delta t=%g$ yr' % (delta_t/yr_to_sec))
-plt.grid(linestyle=':')
-plt.plot((t_arr-t0)/yr_to_sec, vsh_arr/c, color=color_array[i], label=r'$v_{\rm sh}$')
-plt.plot((t_arr-t0)/yr_to_sec, v1_arr/c, linestyle='dashed', color=color_array[i+1], label=r'$v_1=r_{\rm sh}/(t+\Delta t)$')
-plt.plot((t_arr-t0)/yr_to_sec, v2_arr/c, linestyle='dotted', color=color_array[i+2], label=r'$v_2=r_{\rm sh}/t$')
-plt.legend()
-plt.tight_layout()
-plt.savefig('velocity_evolution.pdf')

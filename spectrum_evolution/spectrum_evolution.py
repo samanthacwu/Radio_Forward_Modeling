@@ -14,7 +14,7 @@ parser.add_argument('--B_field_prof',type=str,default='None',help='Path to input
 #e.g. Bfield_vs_t.npz will be in data_dir
 parser.add_argument('--t0',type=float,default=0,help='initial time (years)')
 parser.add_argument('--dt_sc',type=float,default=1e-5,help='scaling of dt (t_dyn_0)')
-parser.add_argument('--tf',type=float,default=1e2,help='final time (t_dyn_0)')
+parser.add_argument('--tf',type=float,default=1e2,help='final time (years)')
 parser.add_argument('--max_step',type=float,default=1e2,help='max no. of steps')
 parser.add_argument('--print_int',type=float,default=1e2,help='interval for plotting')
 parser.add_argument('--eps_B',type=float,default=1e-2,help='value of epsilon_B (B field efficiency)')
