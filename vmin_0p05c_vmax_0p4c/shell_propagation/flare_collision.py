@@ -17,8 +17,8 @@ yr_to_sec = 3.156e7
 # model parameters
 # current assumption is that the two flares are identical
 p = 0.5
-v_max = 0.3 * c
-v_min = 0.03 * c
+v_max = c/6.**0.5 # ISCO for a Schwarzschild BH
+v_min = 0.05 * c
 M_flare = 1e-2 * Msun
 
 deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t

@@ -5,7 +5,7 @@ import argparse
 from scipy.interpolate import interp1d
 from matplotlib.colors import LogNorm
 
-plt.style.use('../plot_styles.mplstyle_new')
+plt.style.use('plot_styles.mplstyle_new')
 parser = argparse.ArgumentParser(description='''Analyze spectrum evolution ''')
 parser.add_argument('--model_dir',type=str,default='',help='Path to input model directory')  #e.g. './2.898M_Porb10/'
 parser.add_argument('--data_dir',type=str,default='./evolve_spectrum/',help='Path to spectrum output files')
@@ -285,7 +285,7 @@ for flare in flare_numbers:
     # np.savez(dNdgamma_dir+f'peak_data.npz',Lnu_pk=np.array(Lnu_pkvals),t_pk=np.array(t_pkvals),nu_pk=np.array(nu_pkvals))
 ######################################
     
-    freq_to_plot = 15e9 #3 GH
+    freq_to_plot = 3e9 #3 GH
 
     plt.figure()
     colors = plt.cm.viridis(np.linspace(0,1,15))
