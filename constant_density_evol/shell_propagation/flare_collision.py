@@ -23,7 +23,8 @@ M_flare = 1e-2 * Msun
 
 # deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
 # deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
-rho_ism_arr = np.array([1,10,100])* 1e-24 # g/cm^3
+rho_ism_arr = np.array([1.,10.])*1e-24 # g/cm^3
+#np.array([1,10,100])* 1e-24 # g/cm^3
 
 # flare density profile
 def rho_flare(r, t, A_norm, v_min, v_max): 
@@ -78,11 +79,12 @@ else:
 for i, rho_ism in enumerate(rho_ism_arr):
 	
 	# initial conditions at collision
-	t0 = 0.0 #v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
+	t0 = 0.1 * yr_to_sec #v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
 	Msh_0 = 0.0
-	rsh_0 = 0.0 #v_min*v_max*delta_t / (v_max - v_min) # collision radii
+	rsh_0 = v_max * t0 
+	#v_min*v_max*delta_t / (v_max - v_min) # collision radii
 	# initial vsh set by pressure equilibrium
-	# rho_flare_1_init = rho_flare(rsh_0, t0+delta_t, A, v_min, v_max)
+	rho_flare_1_init = rho_ism #rho_flare(rsh_0, t0+delta_t, A, v_min, v_max)
 	rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max)
 	rho12_ratio = rho_flare_2_init/rho_ism
 	vsh_0 = (v_min + v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
@@ -98,11 +100,11 @@ for i, rho_ism in enumerate(rho_ism_arr):
 	Msh_arr = np.array([]) 
 	rsh_arr = np.array([])
 	vsh_arr = np.array([])
-	v1_arr = np.array([])
+	# v1_arr = np.array([])
 	v2_arr = np.array([])
 	rho1_arr = np.array([])
 	rho2_arr = np.array([])
-	rho1sq_int_arr = np.array([])
+	# rho1sq_int_arr = np.array([])
 	dMdt_arr = np.array([]) 
 	print("initial t: %s sec" % t)
 	# solve shock propagation
@@ -128,19 +130,19 @@ for i, rho_ism in enumerate(rho_ism_arr):
 		vsh_arr = np.append(vsh_arr, vsh)
 		# v1_arr = np.append(v1_arr, v_fl_1)
 		v2_arr = np.append(v2_arr, v_fl_2)
-		# rho1_arr = np.append(rho1_arr, rho_fl_1)
+		rho1_arr = np.append(rho1_arr, rho_ism)
 		rho2_arr = np.append(rho2_arr, rho_fl_2)
 		# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
 		# r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(v_max*t+delta_t), 100)
 		# rho1_gtr_rsh = [rho_flare(r, t+delta_t, A, v_min, v_max)**2 for r in r_gtr_rsh]
 		# rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 	# plot evolution of shell parameters
-	ax1.plot((t_arr-t0)/yr_to_sec, rsh_arr, ls=ls_arr[i], color=color_array[i], label='$\rho_{\rm ISM} =%g \times 10^{-24}$ g/cm$^3$ ' % (rho_ism/1e-24))
+	ax1.plot((t_arr-t0)/yr_to_sec, rsh_arr, ls=ls_arr[i], color=color_array[i], label=r'$\rho_{\rm ISM} =%g \times 10^{-24}$ g/cm$^3$ ' % (rho_ism/1e-24))
 	ax2.plot((t_arr-t0)/yr_to_sec, vsh_arr/c, ls=ls_arr[i], color=color_array[i])
 	ax3.plot((t_arr-t0)/yr_to_sec, Msh_arr/Msun, ls=ls_arr[i], color=color_array[i])
 	ax4.plot((t_arr-t0)/yr_to_sec, dMdt_arr*yr_to_sec/Msun, ls=ls_arr[i], color=color_array[i])
 	# save shell parameters
-	np.savetxt('shell_evolution_rhoISM_%ge-24_cgs.txt' % (rho_ism/1e-24), np.c_[t_arr, rsh_arr, vsh_arr, v2_arr-vsh_arr, rho2_arr], header='Mfl=%gMsun, vmin=%gc, vmax=%gc, power-law-index=%g\ntime [s], rsh [cm], vsh [cm/s], Deltav_2 [cm/s], rhofl_2 [g/cm3]' % (M_flare/Msun, v_min/c, v_max/c, p), fmt='%.8g')
+	np.savetxt('shell_evolution_rhoISM_%ge-24_cgs.txt' % (rho_ism/1e-24), np.c_[t_arr, rsh_arr, vsh_arr, v2_arr-vsh_arr, rho1_arr, rho2_arr], header='Mfl=%gMsun, vmin=%gc, vmax=%gc, power-law-index=%g\ntime [s], rsh [cm], vsh [cm/s], Deltav_2 [cm/s], rho_ISM [g/cm3], rhofl_2 [g/cm3]' % (M_flare/Msun, v_min/c, v_max/c, p), fmt='%.8g')
 	# plot v1, v2, vshell
 
 	fig0,ax0 = plt.subplots()
@@ -148,7 +150,7 @@ for i, rho_ism in enumerate(rho_ism_arr):
 	ax0.set_ylabel(r'velocity [$c$]')
 	ax0.set_xlim(1e-3, 1e2)
 	ax0.set_xscale('log')
-	ax0.set_title('$\rho_{\rm ISM} =%g \times 10^{-24}$ g/cm$^3$' % (rho_ism/1e-24))
+	ax0.set_title(r'$\rho_{\rm ISM} =%g \times 10^{-24}$ g/cm$^3$' % (rho_ism/1e-24))
 	ax0.grid(linestyle=':')
 	ax0.plot((t_arr-t0)/yr_to_sec, vsh_arr/c, color=color_array[i], label=r'$v_{\rm sh}$')
 	# ax0.plot((t_arr-t0)/yr_to_sec, v1_arr/c, linestyle='dashed', color=color_array[i+1], label=r'$v_1=r_{\rm sh}/(t+\Delta t)$')
