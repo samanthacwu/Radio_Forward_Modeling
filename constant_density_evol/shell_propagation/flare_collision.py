@@ -23,7 +23,7 @@ M_flare = 1e-2 * Msun
 
 # deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
 # deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
-rho_ism_arr = np.array([1.,10.])*1e-24 # g/cm^3
+rho_ism_arr = np.array([1.,10.,100.,1000.])*1e-24 # g/cm^3
 #np.array([1,10,100])* 1e-24 # g/cm^3
 
 # flare density profile
@@ -59,7 +59,7 @@ t_arr = np.linspace(0,100000)
 ax2.plot(t_arr, np.ones(len(t_arr))*v_min/c, color='gray', linestyle='dashdot', label=r'$v_{\rm min}$')
 ax2.plot(t_arr, np.ones(len(t_arr))*v_max/c, color='black', linestyle='dashdot', label=r'$v_{\rm max}$')
 ax3.plot(t_arr, np.ones(len(t_arr))*M_flare/Msun, linestyle='dashdot', label=r'$M_{\rm flare}$')
-ls_arr = ['solid', 'dashed', 'dotted']
+ls_arr = ['solid', 'dashed', 'dotted', '-.']
 
 ############# MAIN #################
 
@@ -104,7 +104,7 @@ for i, rho_ism in enumerate(rho_ism_arr):
 	v2_arr = np.array([])
 	rho1_arr = np.array([])
 	rho2_arr = np.array([])
-	# rho1sq_int_arr = np.array([])
+	rho1sq_int_arr = np.array([])
 	dMdt_arr = np.array([]) 
 	print("initial t: %s sec" % t)
 	# solve shock propagation
@@ -133,16 +133,17 @@ for i, rho_ism in enumerate(rho_ism_arr):
 		rho1_arr = np.append(rho1_arr, rho_ism)
 		rho2_arr = np.append(rho2_arr, rho_fl_2)
 		# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
-		# r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(v_max*t+delta_t), 100)
-		# rho1_gtr_rsh = [rho_flare(r, t+delta_t, A, v_min, v_max)**2 for r in r_gtr_rsh]
-		# rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
+		r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(v_max*t), 100)
+		rho1_gtr_rsh = [rho_ism**2 for r in r_gtr_rsh]
+		# rho1_gtr_rsh = [rho_flare(r, t, A, v_min, v_max)**2 for r in r_gtr_rsh]
+		rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 	# plot evolution of shell parameters
 	ax1.plot((t_arr-t0)/yr_to_sec, rsh_arr, ls=ls_arr[i], color=color_array[i], label=r'$\rho_{\rm ISM} =%g \times 10^{-24}$ g/cm$^3$ ' % (rho_ism/1e-24))
 	ax2.plot((t_arr-t0)/yr_to_sec, vsh_arr/c, ls=ls_arr[i], color=color_array[i])
 	ax3.plot((t_arr-t0)/yr_to_sec, Msh_arr/Msun, ls=ls_arr[i], color=color_array[i])
 	ax4.plot((t_arr-t0)/yr_to_sec, dMdt_arr*yr_to_sec/Msun, ls=ls_arr[i], color=color_array[i])
 	# save shell parameters
-	np.savetxt('shell_evolution_rhoISM_%ge-24_cgs.txt' % (rho_ism/1e-24), np.c_[t_arr, rsh_arr, vsh_arr, v2_arr-vsh_arr, rho1_arr, rho2_arr], header='Mfl=%gMsun, vmin=%gc, vmax=%gc, power-law-index=%g\ntime [s], rsh [cm], vsh [cm/s], Deltav_2 [cm/s], rho_ISM [g/cm3], rhofl_2 [g/cm3]' % (M_flare/Msun, v_min/c, v_max/c, p), fmt='%.8g')
+	np.savetxt('shell_evolution_rhoISM_%ge-24_cgs.txt' % (rho_ism/1e-24), np.c_[t_arr, rsh_arr, vsh_arr, v2_arr-vsh_arr, rho1_arr, rho2_arr, rho1sq_int_arr], header='Mfl=%gMsun, vmin=%gc, vmax=%gc, power-law-index=%g\ntime [s], rsh [cm], vsh [cm/s], Deltav_2 [cm/s], rho_ISM [g/cm3], rhofl_2 [g/cm3], int_rhosq_1dr [g^2/cm^5]' % (M_flare/Msun, v_min/c, v_max/c, p), fmt='%.8g')
 	# plot v1, v2, vshell
 
 	fig0,ax0 = plt.subplots()
