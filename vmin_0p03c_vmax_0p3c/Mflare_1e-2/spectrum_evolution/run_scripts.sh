@@ -5,3 +5,12 @@
 
 python analyze_multiwavelength_spectrum.py --p_exp=2.1 --f_omega=1.00 --eps_E=0.1 --eps_B=0.1 --Te_csm=1e4 --model_dir './evolve_shock/shell_evolution_deltat_0.3yr/' --evolve_shock_dir './evolve_shock/shell_evolution_deltat_0.3yr/' --data_dir './evolve_spectrum_epsB_1e-1_p2p1/shell_evolution_deltat_0.3yr/' --dNdgamma_dir './evolve_spectrum_epsB_1e-1_p2p1/shell_evolution_deltat_0.3yr/'
 mv Radio_curve*.png ./evolve_spectrum_epsB_1e-1_p2p1/shell_evolution_deltat_0.3yr/
+
+python analyze_multiwavelength_spectrum.py --p_exp=2.1 --f_omega=1.00 --eps_E=0.1 --eps_B=0.1 --Te_csm=1e4 --model_dir './evolve_shock/shell_evolution_deltat_0.1yr/' --evolve_shock_dir './evolve_shock/shell_evolution_deltat_0.1yr/' --data_dir './evolve_spectrum_epsB_1e-1_p2p1/shell_evolution_deltat_0.1yr/' --dNdgamma_dir './evolve_spectrum_epsB_1e-1_p2p1/shell_evolution_deltat_0.1yr/'
+mv Radio_curve*.png ./evolve_spectrum_epsB_1e-1_p2p1/shell_evolution_deltat_0.1yr/
+
+python analyze_multiwavelength_spectrum.py --p_exp=3 --f_omega=1.00 --eps_E=0.1 --eps_B=0.1 --Te_csm=1e4 --model_dir './evolve_shock/shell_evolution_deltat_0.1yr/' --evolve_shock_dir './evolve_shock/shell_evolution_deltat_0.1yr/' --data_dir './evolve_spectrum_epsB_1e-1/shell_evolution_deltat_0.1yr/' --dNdgamma_dir './evolve_spectrum_epsB_1e-1/shell_evolution_deltat_0.1yr/'
+mv Radio_curve*.png ./evolve_spectrum_epsB_1e-1/shell_evolution_deltat_0.1yr/
+
+python analyze_multiwavelength_spectrum.py --p_exp=3 --f_omega=1.00 --eps_E=0.1 --eps_B=0.1 --Te_csm=1e4 --model_dir './evolve_shock/shell_evolution_deltat_0.3yr/' --evolve_shock_dir './evolve_shock/shell_evolution_deltat_0.3yr/' --data_dir './evolve_spectrum_epsB_1e-1/shell_evolution_deltat_0.3yr/' --dNdgamma_dir './evolve_spectrum_epsB_1e-1/shell_evolution_deltat_0.3yr/'
+mv Radio_curve*.png ./evolve_spectrum_epsB_1e-1/shell_evolution_deltat_0.3yr/
