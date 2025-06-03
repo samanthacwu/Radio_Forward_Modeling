@@ -23,7 +23,7 @@ M_flare = 1e-1 * Msun
 
 # deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
 # deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
-rho_ism_arr = np.array([1.,10.,100.,1000.])*1e-24 # g/cm^3
+rho_ism_arr = np.array([1.,10.,100.,1000.,1e4])*1e-24 # g/cm^3
 #np.array([1,10,100])* 1e-24 # g/cm^3
 
 # flare density profile
@@ -59,7 +59,7 @@ t_arr = np.linspace(0,100000)
 ax2.plot(t_arr, np.ones(len(t_arr))*v_min/c, color='gray', linestyle='dashdot', label=r'$v_{\rm min}$')
 ax2.plot(t_arr, np.ones(len(t_arr))*v_max/c, color='black', linestyle='dashdot', label=r'$v_{\rm max}$')
 ax3.plot(t_arr, np.ones(len(t_arr))*M_flare/Msun, linestyle='dashdot', label=r'$M_{\rm flare}$')
-ls_arr = ['solid', 'dashed', 'dotted', '-.']
+ls_arr = ['solid', 'dashed', 'dotted', '-.','--']
 
 ############# MAIN #################
 
