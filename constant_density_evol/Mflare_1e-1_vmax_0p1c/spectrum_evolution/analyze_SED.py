@@ -242,55 +242,56 @@ tdyn_of_t_sim = dts/dt_scale_sim
 tvals_sec = tvals*tdyn_t0
 
 ##### Uncomment if want Peak Data ####
-fig=plt.figure()
+# fig=plt.figure()
 
-# colors = plt.cm.viridis(np.linspace(0,1,15))
-norm = LogNorm(vmin=tvals[1000]*tdyn_t0/secinyear, vmax=tvals[-1]*tdyn_t0/secinyear)
-count = 0
-Lnu_pkvals = []
-t_pkvals = []
-nu_pkvals = []
-# tau_ff_test_grid = np.zeros((15,len(nu_ph_vals)))
-for t in tvals:
-#times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
-    # count+=1
-    # if count < 100 and count % 10 ==0:
-    if count % 400 ==0:
-        print(count,int(count/600), t)
-        Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[count],dNdgamma_vals[count],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
-        tau_ff_test = tau_ff(intrhofl1sqdr_vs_t(tvals[count]*tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm,verbose=False)
-        Lnu_spectrum = Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test
-        argmax,Lnumax = (np.argmax(Lnu_spectrum),np.amax(Lnu_spectrum))
-        # print(nu_ph_vals[argmax]/1e9,Lnumax)
-        Lnu_pkvals.append(Lnumax)
-        nu_pkvals.append(nu_ph_vals[argmax])
-        t_pkvals.append(t*tdyn_t0/secinyear)
-        plt.plot(nu_ph_vals/1e9,Lnu_spectrum,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)))
-        # plt.scatter(nu_ph_vals[argmax]/1e9,Lnumax,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)),s=40)
-    count +=1
-plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
-plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
-sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
-plt.colorbar(sm,label='Time (yr)')
-plt.yscale('log')
-plt.xscale('log')
-# plt.axvspan(2,4,color='gray',alpha=0.5)
-# plt.axhspan(1e26,1e29,color='gray',alpha=0.5)
-plt.legend()
-plt.xlim(1e-6,1e8)
-plt.ylim(1e10,1e30)
-plt.xlabel(r'$\nu$ (GHz)')
-plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
-plt.savefig(f'Radio_curves_vs_frequency_{flare+1}.png',dpi=300,transparent=False,facecolor='white')
-# # plt.title('Both SSA and FF')
-# print(nu_ph_vals[np.where((nu_ph_vals > 1e10) & (nu_ph_vals < 10e10))])
+# # colors = plt.cm.viridis(np.linspace(0,1,15))
+# norm = LogNorm(vmin=tvals[1000]*tdyn_t0/secinyear, vmax=tvals[-1]*tdyn_t0/secinyear)
+# count = 0
+# Lnu_pkvals = []
+# t_pkvals = []
+# nu_pkvals = []
+# # tau_ff_test_grid = np.zeros((15,len(nu_ph_vals)))
+# for t in tvals:
+# #times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
+#     # count+=1
+#     # if count < 100 and count % 10 ==0:
+#     if count % 400 ==0:
+#         print(count,int(count/600), t)
+#         Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[count],dNdgamma_vals[count],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
+#         tau_ff_test = tau_ff(intrhofl1sqdr_vs_t(tvals[count]*tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm,verbose=False)
+#         Lnu_spectrum = Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test
+#         argmax,Lnumax = (np.argmax(Lnu_spectrum),np.amax(Lnu_spectrum))
+#         # print(nu_ph_vals[argmax]/1e9,Lnumax)
+#         Lnu_pkvals.append(Lnumax)
+#         nu_pkvals.append(nu_ph_vals[argmax])
+#         t_pkvals.append(t*tdyn_t0/secinyear)
+#         plt.plot(nu_ph_vals/1e9,Lnu_spectrum,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)))
+#         # plt.scatter(nu_ph_vals[argmax]/1e9,Lnumax,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)),s=40)
+#     count +=1
+# plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
+# plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
+# sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
+# plt.colorbar(sm,label='Time (yr)')
+# plt.yscale('log')
+# plt.xscale('log')
+# # plt.axvspan(2,4,color='gray',alpha=0.5)
+# # plt.axhspan(1e26,1e29,color='gray',alpha=0.5)
+# plt.legend()
+# plt.xlim(1e-6,1e8)
+# plt.ylim(1e10,1e30)
+# plt.xlabel(r'$\nu$ (GHz)')
+# plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
+# plt.savefig(f'Radio_curves_vs_frequency_{flare+1}.png',dpi=300,transparent=False,facecolor='white')
+# # # plt.title('Both SSA and FF')
+# # print(nu_ph_vals[np.where((nu_ph_vals > 1e10) & (nu_ph_vals < 10e10))])
 
-np.savez(dNdgamma_dir+f'peak_data.npz',Lnu_pk=np.array(Lnu_pkvals),t_pk=np.array(t_pkvals),nu_pk=np.array(nu_pkvals))
+# np.savez(dNdgamma_dir+f'peak_data.npz',Lnu_pk=np.array(Lnu_pkvals),t_pk=np.array(t_pkvals),nu_pk=np.array(nu_pkvals))
 
 
 #### To plot SED at specific epochs ####
 fig=plt.figure()
-print("Plotting SED at epochs", epoch_list)
+norm = LogNorm(vmin=tvals[1000]*tdyn_t0/secinday, vmax=tvals[-1]*tdyn_t0/secinday)
+print("Plotting SED at epochs (days)", epoch_list)
 times_list = []
 count_list = []
 
@@ -298,6 +299,9 @@ for epoch in epoch_list: #epochs are in days
     index_at_epoch=np.argmin(np.abs(tvals*tdyn_t0/secinday-epoch)/epoch )
     times_list.append(tvals[index_at_epoch]) #in units of tdyn_t0
     count_list.append(index_at_epoch)
+
+SEDs_to_save_dict = {}
+SEDs_to_save_dict['nu_ph_vals_GHz'] = nu_ph_vals/1e9 #in GHz
 
 for t,count,epoch in zip(times_list,count_list,epoch_list):
 #times[np.where((rsh_func_ND(times/tdyn_t0)*rsh_t0>1e14) & (rsh_func_ND(times/tdyn_t0)*rsh_t0<1e15))]/tdyn_t0: #times/tdyn_t0:
@@ -308,14 +312,14 @@ for t,count,epoch in zip(times_list,count_list,epoch_list):
     Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[count],dNdgamma_vals[count],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
     tau_ff_test = tau_ff(intrhofl1sqdr_vs_t(tvals[count]*tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm,verbose=False)
     Lnu_spectrum = Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test
-
-    plt.plot(nu_ph_vals/1e9,Lnu_spectrum,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)),label=f'{epoch:.1f} days'.format(epoch=epoch))
+    SEDs_to_save_dict[f'epoch_{epoch}'] = Lnu_spectrum
+    plt.plot(nu_ph_vals/1e9,Lnu_spectrum,color=plt.cm.viridis(norm(t*tdyn_t0/secinday)),label=f'{epoch:.1f} days'.format(epoch=epoch))
         # plt.scatter(nu_ph_vals[argmax]/1e9,Lnumax,color=plt.cm.viridis(norm(t*tdyn_t0/secinyear)),s=40)
     count +=1
 plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
 plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
 sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
-plt.colorbar(sm,label='Time (yr)')
+plt.colorbar(sm,label='Time (day)')
 plt.yscale('log')
 plt.xscale('log')
 # plt.axvspan(2,4,color='gray',alpha=0.5)
@@ -326,3 +330,5 @@ plt.ylim(1e10,1e30)
 plt.xlabel(r'$\nu$ (GHz)')
 plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
 plt.savefig(f'SED_at_epochs_{flare+1}.png',dpi=300,transparent=False,facecolor='white')
+np.savez(dNdgamma_dir+f'SED_data.npz',SED_vs_epoch=SEDs_to_save_dict)
+
