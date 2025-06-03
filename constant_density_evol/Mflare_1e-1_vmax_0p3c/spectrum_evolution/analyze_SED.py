@@ -308,7 +308,7 @@ for t,count,epoch in zip(times_list,count_list,epoch_list):
     # count+=1
     # if count < 100 and count % 10 ==0:
 
-    print(count, t)
+    print(count, t*tdyn_t0/secinday, 'days')
     Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[count],dNdgamma_vals[count],gamma_e_vals,delta_gamma_e,f_omega=f_omega)
     tau_ff_test = tau_ff(intrhofl1sqdr_vs_t(tvals[count]*tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm,verbose=False)
     Lnu_spectrum = Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test
