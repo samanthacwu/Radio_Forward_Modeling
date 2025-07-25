@@ -162,7 +162,8 @@ intrhofl1sqdr_vs_t = interp1d(times_orig,intrhofl1sqdr,kind='linear')
 #         dNdgamma_dir = dNdgamma_over_dir + '/flare1/'
 #     elif flare==1:
 flare = 1
-rho_of_t = rho2_of_t
+# rho_of_t = rho2_of_t
+rho_of_t = rho_const
 vsh_of_t = deltav2_of_t
 dNdgamma_dir = dNdgamma_over_dir + '/flare2/'
 print('flare',flare+1,'dNdgamma_dir',dNdgamma_dir)

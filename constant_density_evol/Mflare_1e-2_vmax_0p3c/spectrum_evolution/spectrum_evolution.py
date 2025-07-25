@@ -70,7 +70,8 @@ deltav2_of_t = shock_data['deltav2_of_t']
 # for flare in flare_numbers:
 flare = 1 #just do one flare
 
-rho_of_t = rho2_of_t
+# rho_of_t = rho2_of_t
+rho_of_t= rho_const # use forward shock
 vsh_of_t = deltav2_of_t
 # print('flare',flare+1)
 
