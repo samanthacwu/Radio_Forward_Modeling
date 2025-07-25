@@ -32,8 +32,10 @@ AT2019dsg   VLA     21A-303            2021 Jun 12   796 5       0.209   0.014
 AT2019dsg   VLA     21A-303            2021 Jun 12   796 7       0.132   0.013 
 AT2019dsg   MeerKAT SCI-20220822-YC-01 2023 Jan 15  1378 0.88    0.284   0.041 
 AT2019dsg   MeerKAT SCI-20220822-YC-01 2023 Jan 15  1378 1.36    0.384   0.026 
+AT2019dsg   MeerKAT Extrapolated       2023 Jan 15  1378 6       0.8     0.026 
 AT2019dsg   VLA     VLASS 3            2023 Jan 31  1404 3     < 0.386         
-AT2019dsg   MeerKAT SCI-20220822-MB-03 2023 Mar 5   1437 1.36    0.228   0.016 
+AT2019dsg   MeerKAT SCI-20220822-MB-03 2023 Mar 5   1437 1.36    0.228   0.016
+AT2019dsg   MeerKAT Extrapolated       2023 Mar 5   1437 6       0.48     0.016 
 ASASSN-14ae VLA     15B-247            2016 Mar 12   778 5     < 0.033         
 ASASSN-14ae VLA     VLASS 1            2019 Nov 19  2122 3     < 0.420         
 ASASSN-14ae VLA     20A-492            2020 May 25  2313 6       0.090   0.015 
