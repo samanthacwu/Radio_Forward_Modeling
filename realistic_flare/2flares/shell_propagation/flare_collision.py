@@ -16,12 +16,13 @@ yr_to_sec = 3.156e7
 
 # model parameters
 # current assumption is that the two flares are identical
+# based on pairs of 2 flares in flare_summary.dat:
 p = 0.5
-v_max = 0.3 * c
-v_min = 0.03 * c
-M_flare = 1e-2 * Msun
+v_max = 0.4 * c
+v_min = 0.1 * c
+M_flare_arr = np.array([7e-3,6e-3]) * Msun
 
-deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
+deltat_arr = np.array([2.,0.1]) * yr_to_sec # vary delta_t
 # deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
 
 # flare density profile
@@ -40,7 +41,7 @@ ax1 = axes[0,0]
 ax2 = axes[0,1]
 ax3 = axes[1,0]
 ax4 = axes[1,1]
-ax1.set_title(r'$M_{\rm flare}=%gM_\odot$, $v_{\rm min}=%gc$' % (M_flare/Msun, v_min/c))
+ax1.set_title(r'$M_{\rm flare}=%gM_\odot$, $v_{\rm min}=%gc$' % (M_flare_arr[0]/Msun, v_min/c))
 ax1.set_ylabel(r'shell radius [cm]')
 ax2.set_ylabel(r'shell velocity [$c$]')
 ax3.set_ylabel(r'shell mass [$M_\odot$]')
@@ -56,7 +57,7 @@ ax2.set_yscale('linear')
 t_arr = np.linspace(0,100000)
 ax2.plot(t_arr, np.ones(len(t_arr))*v_min/c, color='gray', linestyle='dashdot', label=r'$v_{\rm min}$')
 ax2.plot(t_arr, np.ones(len(t_arr))*v_max/c, color='black', linestyle='dashdot', label=r'$v_{\rm max}$')
-ax3.plot(t_arr, np.ones(len(t_arr))*M_flare/Msun, linestyle='dashdot', label=r'$M_{\rm flare}$')
+ax3.plot(t_arr, np.ones(len(t_arr))*M_flare_arr[0]/Msun, linestyle='dashdot', label=r'$M_{\rm flare}$')
 ls_arr = ['solid', 'dashed', 'dotted']
 
 ############# MAIN #################
@@ -65,16 +66,18 @@ ls_arr = ['solid', 'dashed', 'dotted']
 assert p>0 # p=0 will lead to no mass ejection. p<0 is unphysical.
 assert v_max > v_min
 
-# obtain normalization of flare density profile
-A = M_flare*(2.*p)/(4.*math.pi*v_max**3) / ((v_max/v_min)**(2.*p) - 1.)
+for i, [delta_t,M_flare] in enumerate(zip(deltat_arr,M_flare_arr)):
+	print(delta_t,M_flare)
 
-# output kinetic energy. when p=1 the integration is a bit different
-if p == 1:
-	print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5*math.log(v_max/v_min)))
-else:
-	print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5/(2.-2.*p) * (1.-(v_max/v_min)**(2.*p-2.))))
+	# obtain normalization of flare density profile
+	A = M_flare*(2.*p)/(4.*math.pi*v_max**3) / ((v_max/v_min)**(2.*p) - 1.)
 
-for i, delta_t in enumerate(deltat_arr):
+	# output kinetic energy. when p=1 the integration is a bit different
+	if p == 1:
+		print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5*math.log(v_max/v_min)))
+	else:
+		print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5/(2.-2.*p) * (1.-(v_max/v_min)**(2.*p-2.))))
+
 	
 	# initial conditions at collision
 	t0 = v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
