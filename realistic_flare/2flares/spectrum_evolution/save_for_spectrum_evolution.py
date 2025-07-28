@@ -38,7 +38,7 @@ Rsun = 6.96e10
 
 secinyear = 3.154e7
 secinday = 86400
-plt.style.use('../../plot_styles.mplstyle_new')
+plt.style.use('/Users/samwu/codes/current_projects/RadioTDEFlares/plot_styles.mplstyle_new')
 
 shell_data=np.loadtxt(evolve_shock_dir+datafile_name)
 times = shell_data[:,0] #s
