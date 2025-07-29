@@ -72,7 +72,7 @@ flare = 1 #just do one flare
 
 # rho_of_t = rho2_of_t
 rho_of_t= rho_const # use forward shock
-vsh_of_t = deltav2_of_t
+vsh_of_t = vsh_orig
 # print('flare',flare+1)
 
 if args.B_field_prof == 'None':
