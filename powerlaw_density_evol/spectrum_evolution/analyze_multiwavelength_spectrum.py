@@ -287,7 +287,7 @@ tvals_sec = tvals*tdyn_t0
 # np.savez(dNdgamma_dir+f'peak_data.npz',Lnu_pk=np.array(Lnu_pkvals),t_pk=np.array(t_pkvals),nu_pk=np.array(nu_pkvals))
 ######################################
 
-freq_to_plot = 15e9 #3 GHz = 3e9
+freq_to_plot = 6e9 #3 GHz = 3e9
 
 plt.figure()
 colors = plt.cm.viridis(np.linspace(0,1,15))
