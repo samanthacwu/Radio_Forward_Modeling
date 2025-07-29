@@ -23,7 +23,7 @@ M_flare = 1e-1 * Msun
 
 # deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
 # deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
-rho_ism_arr = np.array([1,10,100,250,500,750,1e3,1e4])*1e-24 # g/cm^3
+rho_ism_arr = np.array([1e3])*1e-24 # g/cm^3
 #np.array([1,10,100])* 1e-24 # g/cm^3
 
 # flare density profile
@@ -108,7 +108,7 @@ for i, rho_ism in enumerate(rho_ism_arr):
 	dMdt_arr = np.array([]) 
 	print("initial t: %s sec" % t)
 	# solve shock propagation
-	while t < 10000*t0:
+	while t < 11000*t0:
 		# make sure shell doesn't expand too much at one timestep
 		dt = 1e-3*(rsh/vsh)
 		# get current rho_flare
