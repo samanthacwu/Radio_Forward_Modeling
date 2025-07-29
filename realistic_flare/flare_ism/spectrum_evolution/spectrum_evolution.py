@@ -70,9 +70,9 @@ deltav2_of_t = shock_data['deltav2_of_t']
 # for flare in flare_numbers:
 flare = 1 #just do one flare
 
-# rho_of_t = rho2_of_t
+# rho_of_t = rho2_of_tx
 rho_of_t= rho_const # use forward shock
-vsh_of_t = deltav2_of_t
+vsh_of_t = vsh_orig #deltav2_of_t
 # print('flare',flare+1)
 
 if args.B_field_prof == 'None':
@@ -187,7 +187,7 @@ plt.close()
 
 plt.figure()
 plt.plot(times/secinyear,vsh_func_ND(times/tdyn_t0))
-plt.plot(times_orig[ind_start:]/secinyear,vsh_of_t/vsh_t0,label=f'delta_v{flare+1}',ls=':')
+plt.plot(times_orig[ind_start:]/secinyear,vsh_of_t/vsh_t0,label=f'shock velocity used',ls=':')
 plt.plot(times_orig[ind_start:]/secinyear,vsh_orig/vsh_t0,label='shock velocity',ls=':',color='black')
 plt.xlabel('Time (yr)')
 plt.ylabel('vel')

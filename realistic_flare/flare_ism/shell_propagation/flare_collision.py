@@ -116,7 +116,10 @@ for i, rho_ism in enumerate(rho_ism_arr):
 		# rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max)
 		rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max)
 		# v_fl_1 = rsh/(t+delta_t)
-		v_fl_2 = rsh/t
+		if rho_fl_2 ==0:
+			v_fl_2 = 0 #this only matters for saving v2_arr
+		else:
+			v_fl_2 = rsh/t
 		# evolve
 		rsh_old = rsh # backup of rsh
 		dMdt_arr = np.append(dMdt_arr, 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_ism*vsh))
