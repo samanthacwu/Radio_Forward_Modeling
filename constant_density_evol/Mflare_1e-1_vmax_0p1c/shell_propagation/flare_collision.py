@@ -79,7 +79,7 @@ else:
 for i, rho_ism in enumerate(rho_ism_arr):
 	
 	# initial conditions at collision
-	t0 = 0.1 * yr_to_sec #v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
+	t0 = 0.01 * yr_to_sec #v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
 	Msh_0 = 0.0
 	rsh_0 = v_max * t0 
 	#v_min*v_max*delta_t / (v_max - v_min) # collision radii
@@ -108,7 +108,7 @@ for i, rho_ism in enumerate(rho_ism_arr):
 	dMdt_arr = np.array([]) 
 	print("initial t: %s sec" % t)
 	# solve shock propagation
-	while t < 1000*t0:
+	while t < 10000*t0:
 		# make sure shell doesn't expand too much at one timestep
 		dt = 1e-3*(rsh/vsh)
 		# get current rho_flare

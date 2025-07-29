@@ -23,7 +23,7 @@ M_flare = 1e-1 * Msun
 
 # deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
 # deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
-rho_ism_arr = np.array([1e3])*1e-24 # g/cm^3
+rho_ism_arr = np.array([500])*1e-24 # g/cm^3
 #np.array([1,10,100])* 1e-24 # g/cm^3
 
 # flare density profile

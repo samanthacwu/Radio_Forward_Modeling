@@ -23,7 +23,7 @@ M_flare = 1e-1 * Msun
 
 # deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
 # deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
-rho_ism_arr = np.array([1e1,1e2,1e3,1e4])*1e-24 # g/cm^3
+rho_ism_arr = np.array([1e1,1e2,1e3,1e4,1e5,1e6,5e6])*1e-24 # g/cm^3
 #np.array([1,10,100])* 1e-24 # g/cm^3
 
 # flare density profile
@@ -34,7 +34,7 @@ def rho_flare(r, t, A_norm, v_min, v_max):
 	else:
 		return A_norm/t**3 * (r/v_max/t)**(-2.*p-3.)
 
-def rho_ism_func(r,r0,rho_ism):
+def rho_ism_func(r,rho_ism,r0=1e16): #r0 in cm
 	# power-law density ISM
 	return rho_ism * (r/r0)**(-2.5)
 
@@ -62,7 +62,7 @@ t_arr = np.linspace(0,100000)
 ax2.plot(t_arr, np.ones(len(t_arr))*v_min/c, color='gray', linestyle='dashdot', label=r'$v_{\rm min}$')
 ax2.plot(t_arr, np.ones(len(t_arr))*v_max/c, color='black', linestyle='dashdot', label=r'$v_{\rm max}$')
 ax3.plot(t_arr, np.ones(len(t_arr))*M_flare/Msun, linestyle='dashdot', label=r'$M_{\rm flare}$')
-ls_arr = ['solid', 'dashed', 'dotted', '-.']
+ls_arr = ['solid', 'dashed', 'dotted', '-.','solid', 'dashed', 'dotted', '-.']
 
 ############# MAIN #################
 
@@ -87,7 +87,7 @@ for i, rho_ism0 in enumerate(rho_ism_arr):
 	rsh_0 = v_max * t0 
 	#v_min*v_max*delta_t / (v_max - v_min) # collision radii
 	# initial vsh set by pressure equilibrium
-	rho_ism_init = rho_ism_func(rsh_0,rsh_0,rho_ism0) #rho_flare(rsh_0, t0+delta_t, A, v_min, v_max)
+	rho_ism_init = rho_ism_func(rsh_0,rho_ism0) #rho_flare(rsh_0, t0+delta_t, A, v_min, v_max)
 	rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max)
 	rho12_ratio = rho_flare_2_init/rho_ism_init
 	vsh_0 = (v_min + v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
@@ -111,12 +111,12 @@ for i, rho_ism0 in enumerate(rho_ism_arr):
 	dMdt_arr = np.array([]) 
 	print("initial t: %s sec" % t)
 	# solve shock propagation
-	while t < 1000*t0:
+	while t < 10000*t0:
 		# make sure shell doesn't expand too much at one timestep
 		dt = 1e-3*(rsh/vsh)
 		# get current rho_flare
 		# rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max)
-		rho_ism = rho_ism_func(rsh,rsh_0,rho_ism0)
+		rho_ism = rho_ism_func(rsh,rho_ism0)
 		rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max)
 		# v_fl_1 = rsh/(t+delta_t)
 		v_fl_2 = rsh/t
