@@ -79,7 +79,7 @@ else:
 for i, rho_ism in enumerate(rho_ism_arr):
 	
 	# initial conditions at collision
-	t0 = 0.1 * yr_to_sec #v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
+	t0 = 0.01 * yr_to_sec #v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
 	Msh_0 = 0.0
 	rsh_0 = v_max * t0 
 	#v_min*v_max*delta_t / (v_max - v_min) # collision radii

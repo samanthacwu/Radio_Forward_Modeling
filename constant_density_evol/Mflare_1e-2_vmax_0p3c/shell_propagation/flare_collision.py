@@ -23,7 +23,7 @@ M_flare = 1e-2 * Msun
 
 # deltat_arr = np.array([0.1, 0.3, 1.]) * yr_to_sec # vary delta_t
 # deltat_arr = np.array([1.]) * yr_to_sec # vary delta_t
-rho_ism_arr = np.array([2500,5000,7500,10000])*1e-24 # g/cm^3
+rho_ism_arr = np.array([10,100,1e3,1e4])*1e-24 # g/cm^3
 #np.array([1,10,100])* 1e-24 # g/cm^3
 
 # flare density profile
@@ -79,7 +79,7 @@ else:
 for i, rho_ism in enumerate(rho_ism_arr):
 	
 	# initial conditions at collision
-	t0 = 0.1 * yr_to_sec #v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
+	t0 = 0.01 * yr_to_sec #v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
 	Msh_0 = 0.0
 	rsh_0 = v_max * t0 
 	#v_min*v_max*delta_t / (v_max - v_min) # collision radii
@@ -108,7 +108,7 @@ for i, rho_ism in enumerate(rho_ism_arr):
 	dMdt_arr = np.array([]) 
 	print("initial t: %s sec" % t)
 	# solve shock propagation
-	while t < 1000*t0:
+	while t < 10000*t0:
 		# make sure shell doesn't expand too much at one timestep
 		dt = 1e-3*(rsh/vsh)
 		# get current rho_flare
@@ -116,7 +116,7 @@ for i, rho_ism in enumerate(rho_ism_arr):
 		rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max)
 		# v_fl_1 = rsh/(t+delta_t)
 		v_fl_2 = rsh/t
-		# evolve
+		# evolve``
 		rsh_old = rsh # backup of rsh
 		dMdt_arr = np.append(dMdt_arr, 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_ism*vsh))
 		Msh += 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_ism*vsh) * dt
