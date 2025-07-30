@@ -1,6 +1,6 @@
 *.npy
 *.npz
-# *.txt
+*.txt
 *.pdf
 *.png
 *.DS_store
