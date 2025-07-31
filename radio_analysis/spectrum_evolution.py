@@ -7,7 +7,7 @@ import os
 from scipy.interpolate import interp1d
 
 # first, establish RHS function and the finite difference scheme for RHS
-from solvers import elec_time_evol #, euler, RK4, df_dx
+from .solvers import elec_time_evol #, euler, RK4, df_dx
 # from calcs import evolve_ODE
 plt.style.use('/Users/samwu/codes/current_projects/RadioTDEFlares/plot_styles.mplstyle_new')
 
@@ -26,7 +26,7 @@ def q_e(gamma_e,t,vsh_func,rsh_func,n0_func,p,f_omega=1):
     return f_omega*4 * np.pi * rsh_func(t)**2 * vsh_func(t) * dndgamma_func(gamma_e,n0_func(t),p)
 coeff_rad_ND_func = lambda t,B_func,tdyn_t0: -((sigma_T * B_func(t)**2)/(6 * np.pi * m_e * c))*tdyn_t0
 
-def evolve_spectrum(simtype, data_dir, save_dir, t0_in=0, dt_scale_in=1e-5, tf_in=1e2, max_step_in=1e2, print_int=1e2):
+def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-5, tf_in=1e2, max_step_in=1e2, print_int=1e2):
     """
     Run evolution of spectrum given hydrodynamical shock info.
     
@@ -40,6 +40,11 @@ def evolve_spectrum(simtype, data_dir, save_dir, t0_in=0, dt_scale_in=1e-5, tf_i
     max_step_in (int): Maximum number of steps.
     print_int (int): Interval for plotting.
     """
+
+    if save_dir_in=='':
+        save_dir = data_dir
+    else:
+        save_dir = save_dir_in
 
     m = Model(data_dir+'shock_data.npz',simtype=simtype)
     m.generate_ND_interp_funcs(simtype)
@@ -65,22 +70,27 @@ def evolve_spectrum(simtype, data_dir, save_dir, t0_in=0, dt_scale_in=1e-5, tf_i
 
     for flarenum,flare in enumerate(flare_list):
         if flare == 'fwd':
-            coeff_rad_ND = partial(coeff_rad_ND_func,B_func=m.B_fwd_func,tdyn_t0=m.tdyn_t0)
+            coeff_rad_ND = partial(coeff_rad_ND_func,B_func=m.B_fwd_ND_func,tdyn_t0=m.tdyn_t0)
             vsh_ND_func = m.vsh_fwd_ND_func
             n0_func_ND = m.n0_fwd_ND_func
             n0_func = m.n0_fwd_func
-            B_func = m.B_fwd_func
+            B_ND_func = m.B_fwd_ND_func
             B_of_t = m.B_fwd
             vsh_of_t = m.vsh_fwd
             
         elif flare == 'bwd':
-            coeff_rad_ND = partial(coeff_rad_ND_func,B_func=m.B_bwd_func,tdyn_t0=m.tdyn_t0)
+            coeff_rad_ND = partial(coeff_rad_ND_func,B_func=m.B_bwd_ND_func,tdyn_t0=m.tdyn_t0)
             vsh_ND_func = m.vsh_bwd_ND_func
             n0_func_ND = m.n0_bwd_ND_func
             n0_func = m.n0_bwd_func
-            B_func = m.B_bwd_func
+            B_ND_func = m.B_bwd_ND_func
             B_of_t = m.B_bwd
             vsh_of_t = m.vsh_bwd
+
+        print(f"initial dynamical time: {m.tdyn_t0:1.3E} s, shock radius: {m.rsh_t0:1.3E} cm,")
+        print(f"initial {flare} shock velocity: {m.vsh_t0:1.3E} cm/s, normalization constant for {flare} shock: {m.n0_fwd[0]:1.3E} cm^-3, initial B field for {flare} shock: {m.B_fwd[0]}") 
+        print('minimum time (tdyn0)', m.times[0]/m.tdyn_t0,'max time',m.times[-1]/m.tdyn_t0,t0_in*secinyear/m.tdyn_t0)
+        print('minimum time (yr)', m.times[0]/secinyear,'max time',m.times[-1]/secinyear,t0_in)
 
         #time dependent coefficients for heating and cooling terms
         c1 = lambda t: -m.vsh_tot_ND_func(t)/m.rsh_ND_func(t) #/adjust_const
@@ -94,12 +104,9 @@ def evolve_spectrum(simtype, data_dir, save_dir, t0_in=0, dt_scale_in=1e-5, tf_i
         Qfunc = lambda x,t: c3(t)*np.ones(len(x))
         print('c1(0)',c1(m.times[0]/m.tdyn_t0),'c2(0)',c2(m.times[0]/m.tdyn_t0),'c3(0)', c3(m.times[0]/m.tdyn_t0) )
 
-        print(f"initial dynamical time: {m.tdyn_t0:1.3E} s, shock radius: {m.rsh_t0:1.3E} cm,")
-        print(f"initial {flare} shock velocity: {m.vsh_t0:1.3E} cm/s, normalization constant for {flare} shock: {m.n0_fwd[0]:1.3E} cm^-3, initial B field for {flare} shock: {m.B_fwd[0]}") 
-        print('minimum time', m.times[0]/m.tdyn_t0,'max time',m.times[-1]/m.tdyn_t0)
 
         plt.figure()
-        plt.plot(m.times/secinyear,B_func(m.times/m.tdyn_t0))
+        plt.plot(m.times/secinyear,B_ND_func(m.times/m.tdyn_t0))
         plt.plot(m.times/secinyear,B_of_t,ls=':')
         plt.xlabel('Time (yr)')
         plt.ylabel('B field')
@@ -123,6 +130,7 @@ def evolve_spectrum(simtype, data_dir, save_dir, t0_in=0, dt_scale_in=1e-5, tf_i
         #_________set system parameters____________
 
         rundir = save_dir+f'/{flare}_flare'+str(flarenum+1)+'/'
+        np.save(rundir+'/gamma_e_vals.npy',gamma_e_vals)
 
         t0 = t0_in*secinyear/m.tdyn_t0 #secinyear converted to dynamical time
         dt0 =dt_scale_in/np.abs(c1(t0)) #should be dt_scale * initial dynamical time
@@ -152,7 +160,7 @@ def evolve_spectrum(simtype, data_dir, save_dir, t0_in=0, dt_scale_in=1e-5, tf_i
         t_saved = np.array([],dtype=np.float64)
         dt_saved = np.array([],dtype=np.float64)
         
-        print("initial shock radius, shock velocity, normalization constant", f'{m.rsh_func(t_i*m.tdyn_t0):1.3E},{m.vsh_func(t_i*m.tdyn_t0):1.3E},{n0_func(t_i*m.tdyn_t0):1.3E}')
+        print("initial shock radius, shock velocity, normalization constant", f'{m.rsh_func(t_i*m.tdyn_t0):1.3E},{m.vsh_tot_func(t_i*m.tdyn_t0):1.3E},{n0_func(t_i*m.tdyn_t0):1.3E}')
 
         #this version of y should be like dN/dgamma
         while (t_i < final_age) and (count < max_step) and (dt_i > min_dt) and (stop == False):
@@ -232,4 +240,4 @@ def evolve_spectrum(simtype, data_dir, save_dir, t0_in=0, dt_scale_in=1e-5, tf_i
             np.savez(rundir+'/yvals.npz',y_saved)
             np.save(rundir+'/times.npy',t_saved)
             np.save(rundir+'/dts.npy',dt_saved)
-            np.save(rundir+'/gamma_e_vals.npy',gamma_e_vals)
+            

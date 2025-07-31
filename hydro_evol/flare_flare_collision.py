@@ -16,29 +16,6 @@ c = 2.9989e10
 Msun = 1.989e33
 yr_to_sec = 3.156e7
 
-# parser = argparse.ArgumentParser(description=''' Run hydrodynamical evolution of shock radius given input flare mass (assumed identical), delta_t, min/max velocity ''')
-# parser.add_argument('--M_flares',type=float,nargs='+',default=[1e-2,1e-1],help='Flare masses in Msun units')
-# parser.add_argument('--delta_ts',type=float,nargs='+',default=[0.1,1],help='Time between flares in years')
-# parser.add_argument('--vmin',type=float,default=0.1,help='Minimum shell velocity in units of c')
-# parser.add_argument('--vmax',type=float,default=0.4,help='Maximum shell velocity in units c')
-# parser.add_argument('--save_dir',type=str,default='./evolve_spectrum/',help='Path to save output files')
-# # parser.add_argument('--t0',type=float,default=1e-2,help='initial time (years)')
-
-
-# # model parameters
-# # current assumption is that the two flares are identical
-# # e.g. select based on pairs of 2 flares in flare_summary.dat
-# args = parser.parse_args()
-# data_dir = args.save_dir
-
-# M_flare_arr = np.array(args.M_flares) * Msun # flare masses in g
-# deltat_arr = np.array(args.delta_ts) * yr_to_sec # time between flares in seconds
-
-# p = 0.5
-# v_max = args.vmax * c
-# v_min = args.vmin * c
-# t0_in = args.t0 # initial time in years, not used here
-
 # flare density profile
 def rho_flare(r, t, A_norm, v_min, v_max,p=0.5): 
 	# only exists for v_min < v=r/t < v_max
@@ -47,9 +24,18 @@ def rho_flare(r, t, A_norm, v_min, v_max,p=0.5):
 	else:
 		return A_norm/t**3 * (r/v_max/t)**(-2.*p-3.)
 
-def evolve_flares(M_flares_list,delta_t_list,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spectrum/'):
-	M_flare_arr = np.array(M_flares_list) * Msun # flare masses in g
-	deltat_arr = np.array(delta_t_list) * yr_to_sec # time between flares in seconds
+def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spectrum/'):
+	"""
+		M_flares: (list of) flare masses in solar masses
+		delta_ts: (list of) time between flares in years
+		v_min_c: minimum flare velocity in units of c
+		v_max_c: maximum flare velocity in units of c
+		p: power-law index of flare density profile
+		data_dir: directory to save output data
+	"""
+		
+	M_flare_arr = np.array(M_flares) * Msun # flare masses in g
+	deltat_arr = np.array(delta_ts) * yr_to_sec # time between flares in seconds
 	v_min = v_min_c * c
 	v_max = v_max_c * c
 

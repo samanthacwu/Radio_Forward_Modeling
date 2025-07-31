@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.interpolate import interp1d
-from constants_list import *
+from .constants_list import *
 
 class Model:
     #forward and backward shocks are "fwd" and "bwd"
@@ -23,26 +23,26 @@ class Model:
 
         if simtype == 'flare_flare':
             # this one will run twice for fwd and reverse shocks (uses deltav_1/2 and rhofl_1/2)
-            self.v_fwd = self.deltav_1 =d['deltav1_of_t'] #cm/s
+            self.vsh_fwd = self.deltav_1 =d['deltav1_of_t'] #cm/s
             self.rho_fwd = self.rhofl_1 = d['rho1_of_t'] #g/cm^3
 
             self.rho_bwd = self.rhofl_2 = d['rho2_of_t']
-            self.v_bwd = self.deltav_2 = d['deltav2_of_t']
+            self.vsh_bwd = self.deltav_2 = d['deltav2_of_t']
 
         elif simtype == 'flare_ism':
             # this one will run once for fwd shock only (uses rhoISM and vsh)
-            self.v_fwd = self.vsh
-            self.rho_fwd = self.rhoISM = d['rho_const'] #g/cm^3
+            self.vsh_fwd = self.vsh
+            self.rho_fwd = self.rhoISM = d['rho_ism'] #g/cm^3
 
         else:
             raise ValueError("Invalid simulation type. Use 'flare_flare' or 'flare_ism'.")
 
-        self.B_fwd = self.compute_B(self.rho_fwd,self.v_fwd)
-        self.n0_fwd = self.compute_n0(self.rho_fwd,self.v_fwd) 
+        self.B_fwd = self.compute_B(self.rho_fwd,self.vsh_fwd)
+        self.n0_fwd = self.compute_n0(self.rho_fwd,self.vsh_fwd) 
 
         if simtype == 'flare_flare':
-            self.B_bwd = self.compute_B(self.rho_bwd,self.v_bwd)
-            self.n0_bwd = self.compute_n0(self.rho_bwd,self.v_bwd) 
+            self.B_bwd = self.compute_B(self.rho_bwd,self.vsh_bwd)
+            self.n0_bwd = self.compute_n0(self.rho_bwd,self.vsh_bwd) 
         #N_t0 = n0_t0 * rsh_t0**3, n0_t0 = n0[0]
 
     def compute_B(self,rho,v):
@@ -58,28 +58,30 @@ class Model:
 
         self.int_rhofwd_sq_dr_func = interp1d(self.times, self.int_rhofwd_sq_dr, kind='linear')
 
-        self.vsh_fwd_func = interp1d(self.times, self.v_fwd, kind='linear')
+        self.vsh_fwd_func = interp1d(self.times, self.vsh_fwd, kind='linear')
         self.rho_fwd_func = interp1d(self.times, self.rho_fwd, kind='linear')
         self.B_fwd_func = interp1d(self.times, self.B_fwd, kind='linear')
         self.n0_fwd_func = interp1d(self.times, self.n0_fwd, kind='linear')
 
         if simtype == 'flare_flare':
-            self.vsh_bwd_func = interp1d(self.times, self.v_bwd, kind='linear') 
+            self.vsh_bwd_func = interp1d(self.times, self.vsh_bwd, kind='linear') 
             self.rho_bwd_func = interp1d(self.times, self.rho_bwd, kind='linear') 
             self.B_bwd_func = interp1d(self.times, self.B_bwd, kind='linear') 
             self.n0_bwd_func = interp1d(self.times, self.n0_bwd, kind='linear') 
         return
 
     def generate_ND_interp_funcs(self,simtype):
-        self.rsh_ND_func = interp1d(self.times, self.rsh/self.rsh_t0, kind='linear')
-        self.vsh_tot_ND_func = interp1d(self.times, self.vsh/self.vsh_t0, kind='linear')
+        self.rsh_ND_func = interp1d(self.times/self.tdyn_t0, self.rsh/self.rsh_t0, kind='linear')
+        self.vsh_tot_ND_func = interp1d(self.times/self.tdyn_t0, self.vsh/self.vsh_t0, kind='linear')
 
-        self.vsh_fwd_ND_func = interp1d(self.times, self.v_fwd/self.vsh_t0, kind='linear')
-        self.n0_fwd_ND_func = interp1d(self.times, self.n0_fwd/self.n0_fwd[0], kind='linear')
+        self.vsh_fwd_ND_func = interp1d(self.times/self.tdyn_t0, self.vsh_fwd/self.vsh_t0, kind='linear')
+        self.n0_fwd_ND_func = interp1d(self.times/self.tdyn_t0, self.n0_fwd/self.n0_fwd[0], kind='linear')
+        self.B_fwd_ND_func = interp1d(self.times/self.tdyn_t0, self.B_fwd, kind='linear')
 
         if simtype == 'flare_flare':
-            self.vsh_bwd_ND_func = interp1d(self.times, self.v_bwd/self.vsh_t0, kind='linear') 
-            self.n0_bwd_ND_func = interp1d(self.times, self.n0_bwd/self.n0_bwd[0], kind='linear') 
+            self.vsh_bwd_ND_func = interp1d(self.times/self.tdyn_t0, self.vsh_bwd/self.vsh_t0, kind='linear') 
+            self.n0_bwd_ND_func = interp1d(self.times/self.tdyn_t0, self.n0_bwd/self.n0_bwd[0], kind='linear') 
+            self.B_bwd_ND_func = interp1d(self.times/self.tdyn_t0, self.B_bwd, kind='linear')
         return
 
         
