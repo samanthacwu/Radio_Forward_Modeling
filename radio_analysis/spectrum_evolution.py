@@ -28,7 +28,7 @@ coeff_rad_ND_func = lambda t,B_func,tdyn_t0: -((sigma_T * B_func(t)**2)/(6 * np.
 
 parser = argparse.ArgumentParser(description=''' Run evolution of shock radius given input density profile, energy, ejecta mass. ''')
 parser.add_argument('sim_type',type=str,default='flare_ism',help='Type of simulation: flare_flare or flare_ism')
-parser.add_argument('data_dir',type=str,default='',help='Path to input properties of shock vs time. should contain text file e.g. "shell_evolution_rhoISM_1e-24_cgs.txt"')
+parser.add_argument('data_dir',type=str,default='',help='Path to input properties of shock vs time. should contain "shock_data.npz"')
 parser.add_argument('save_dir',type=str,default='',help='Path to save output files')
 # parser.add_argument('--B_field_prof',type=str,default='None',help='Path to input magnetic field profile. should be npz file')
 #e.g. Bfield_vs_t.npz will be in data_dir
@@ -55,9 +55,9 @@ dt_scale_in = args.dt_sc
 tf_in = args.tf
 max_step_in = args.max_step
 
-m = Model(data_dir,simtype=simtype)
-m.generate_ND_interp_funcs()
-m.generate_interp_funcs()
+m = Model(data_dir+'shock_data.npz',simtype=simtype)
+m.generate_ND_interp_funcs(simtype)
+m.generate_interp_funcs(simtype)
 
 
 #set gamma_e values
