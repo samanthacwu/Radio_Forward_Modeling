@@ -4,7 +4,7 @@ from .constants_list import *
 
 class Model:
     #forward and backward shocks are "fwd" and "bwd"
-    def __init__(self, filename: str, simtype: str, eps_B: float=0.1, eps_E: float=0.1, p_exp: float=3., gamma_min: float=1.):
+    def __init__(self, filename: str, simtype: str, eps_B: float=0.1, eps_E: float=0.1, p_exp: float=3., gamma_min: float=1., N_gamma: int=256):
         d = np.load(filename) #e.g. shock_data.npz
         self.times = d['times']
         self.vsh = d['vsh_of_t']
@@ -16,6 +16,7 @@ class Model:
         self.eps_E = eps_E
         self.p = p_exp
         self.gamma_min = gamma_min
+        self.N_g = N_gamma
 
         self.rsh_t0 = self.rsh[0] # cm
         self.vsh_t0 = self.vsh[0] # cm/s
@@ -46,10 +47,9 @@ class Model:
         #N_t0 = n0_t0 * rsh_t0**3, n0_t0 = n0[0]
 
     def compute_B(self,rho,v):
-        if rho is None: return None
+        # if want to use integrated B field, can compute that separately (see radioSNe_CSM directory for example)
         return np.sqrt(8 * np.pi * self.eps_B * rho * v**2)
     def compute_n0(self,rho,v):
-        if rho is None:  return None
         return self.eps_E*((self.p-2)*self.gamma_min**(self.p-2))*rho*v**2/(m_e*c**2)
     
     def generate_interp_funcs(self,simtype):

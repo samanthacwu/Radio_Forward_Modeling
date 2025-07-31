@@ -200,7 +200,6 @@ rsh_func_ND = interp1d(times/tdyn_t0,rsh_of_t/rsh_t0,kind='linear')
 n0_func_ND = interp1d(times/tdyn_t0,n0_of_t/n0_t0,kind='linear')
 B_func = interp1d(times/tdyn_t0,B_of_t,kind='linear')
 
-B_func = interp1d(times/tdyn_t0,B_of_t,kind='linear')
 coeff_rad_ND = lambda t: -((sigma_T.cgs.value * B_func(t)**2)/(6 * np.pi * m_e.cgs.value * c.cgs.value))*tdyn_t0
 
 print("initial dynamical time, shock radius, shock velocity, normalization constant", 

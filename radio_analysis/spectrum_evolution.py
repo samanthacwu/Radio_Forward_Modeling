@@ -14,6 +14,20 @@ plt.style.use('/Users/samwu/codes/current_projects/RadioTDEFlares/plot_styles.mp
 from hydro_evol.model import Model
 from hydro_evol.constants_list import *
 
+def gamma_e_func(gamma_min,N_g,gamma_max=1e8):
+
+    #set gamma_e values
+    # gamma_max = 1e8 #actually calculated this at some point
+    # gamma_min = m.gamma_min
+    # N_g = m.N_g
+    d_ln_gamma = (np.log(gamma_max) - np.log(gamma_min))/N_g
+    # gamma_e_vals = np.arange(gamma_min,gamma_max,delta_gamma)
+    gamma_e_vals = np.zeros(N_g)
+    gamma_e_vals[0] = gamma_min
+    for i in np.arange(1,N_g):
+        gamma_e_vals[i] = gamma_e_vals[i-1] + (np.exp(d_ln_gamma)-1)*gamma_e_vals[i-1]
+    delta_gamma_e = gamma_e_vals*(np.exp(d_ln_gamma)-1)
+    return gamma_e_vals, delta_gamma_e, d_ln_gamma
 
 #define some functions
 dndgamma_func = lambda gamma,n0_const,p: n0_const*gamma**(-p)
@@ -26,7 +40,7 @@ def q_e(gamma_e,t,vsh_func,rsh_func,n0_func,p,f_omega=1):
     return f_omega*4 * np.pi * rsh_func(t)**2 * vsh_func(t) * dndgamma_func(gamma_e,n0_func(t),p)
 coeff_rad_ND_func = lambda t,B_func,tdyn_t0: -((sigma_T * B_func(t)**2)/(6 * np.pi * m_e * c))*tdyn_t0
 
-def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-5, tf_in=1e2, max_step_in=1e2, print_int=1e2):
+def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3, tf_in=1e2, max_step_in=1e2, print_int=1e2):
     """
     Run evolution of spectrum given hydrodynamical shock info.
     
@@ -50,17 +64,8 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-5
     m.generate_ND_interp_funcs(simtype)
     m.generate_interp_funcs(simtype)
 
-
     #set gamma_e values
-    gamma_max = 1e8 #actually calculated this at some point
-    gamma_min = m.gamma_min
-    N_g = 256
-    d_ln_gamma = (np.log(gamma_max) - np.log(gamma_min))/N_g
-    # gamma_e_vals = np.arange(gamma_min,gamma_max,delta_gamma)
-    gamma_e_vals = np.zeros(N_g)
-    gamma_e_vals[0] = gamma_min
-    for i in np.arange(1,N_g):
-        gamma_e_vals[i] = gamma_e_vals[i-1] + (np.exp(d_ln_gamma)-1)*gamma_e_vals[i-1]
+    gamma_e_vals, delta_gamma_e, d_ln_gamma = gamma_e_func(m.gamma_min,m.N_g,gamma_max=1e8)
 
     if simtype=='flare_flare':
         flare_list=['fwd','bwd']
@@ -130,7 +135,7 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-5
         #_________set system parameters____________
 
         rundir = save_dir+f'/{flare}_flare'+str(flarenum+1)+'/'
-        np.save(rundir+'/gamma_e_vals.npy',gamma_e_vals)
+        
 
         t0 = t0_in*secinyear/m.tdyn_t0 #secinyear converted to dynamical time
         dt0 =dt_scale_in/np.abs(c1(t0)) #should be dt_scale * initial dynamical time
@@ -147,6 +152,7 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-5
         if not os.path.exists(rundir): os.mkdir(rundir)
         if not os.path.exists(rundir+'/plots/'): os.mkdir(rundir+'/plots/')
 
+        
         print('------------initial values: -------------')
 
         count = 0
@@ -240,4 +246,5 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-5
             np.savez(rundir+'/yvals.npz',y_saved)
             np.save(rundir+'/times.npy',t_saved)
             np.save(rundir+'/dts.npy',dt_saved)
+            np.save(rundir+'/gamma_e_vals.npy',gamma_e_vals)
             
