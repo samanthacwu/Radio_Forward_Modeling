@@ -147,7 +147,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 			rho2_arr = np.append(rho2_arr, rho_fl_2)
 			# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
 			r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(v_max*t), 100)
-			rho1_gtr_rsh = [rho_ism_func(r,rsh_0,rho_ism0)**2 for r in r_gtr_rsh]
+			rho1_gtr_rsh = [rho_ism_func(r,rho_ism0,p=p_ism)**2 for r in r_gtr_rsh]
 			# rho1_gtr_rsh = [rho_flare(r, t, A, v_min, v_max)**2 for r in r_gtr_rsh]
 			rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 		# plot evolution of shell parameters
@@ -156,12 +156,13 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 		ax3.plot((t_arr-t0)/yr_to_sec, Msh_arr/Msun, ls=ls_arr[i], color=color_array[i])
 		ax4.plot((t_arr-t0)/yr_to_sec, dMdt_arr*yr_to_sec/Msun, ls=ls_arr[i], color=color_array[i])
 		# save shell parameters
-		save_dir = data_dir+f'shell_evolution_Mflare_{M_flare/Msun:1.0E}_rhoISM0_{rho_ism0/1e-24:1.0E}yr/'
+		save_dir = data_dir+f'shell_evolution_Mflare_{M_flare/Msun:1.0E}_rhoISM0_{rho_ism0/1e-24:1.0E}m_H/'
 		if not os.path.exists(save_dir):
 			os.mkdir(save_dir)
 		else:
 			print('Directory exists')
 		# np.savetxt('shell_evolution_rhoISM_%ge-24_cgs.txt' % (rho_ism0/1e-24), np.c_[t_arr, rsh_arr, vsh_arr, v2_arr-vsh_arr, rho1_arr, rho2_arr, rho1sq_int_arr], header='Mfl=%gMsun, vmin=%gc, vmax=%gc, power-law-index=%g\ntime [s], rsh [cm], vsh [cm/s], Deltav_2 [cm/s], rho_ISM [g/cm3], rhofl_2 [g/cm3], int_rhosq_1dr [g^2/cm^5]' % (M_flare/Msun, v_min/c, v_max/c, p), fmt='%.8g')
+		# print(rho1sq_int_arr)
 		np.savez(save_dir+'/shock_data.npz',
 			times=t_arr,
 			rsh_of_t=rsh_arr,
