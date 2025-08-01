@@ -156,7 +156,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 		ax3.plot((t_arr-t0)/yr_to_sec, Msh_arr/Msun, ls=ls_arr[i], color=color_array[i])
 		ax4.plot((t_arr-t0)/yr_to_sec, dMdt_arr*yr_to_sec/Msun, ls=ls_arr[i], color=color_array[i])
 		# save shell parameters
-		save_dir = data_dir+f'shell_evolution_Mflare_{M_flare/Msun:1.0E}_rhoISM0_{rho_ism0/1e-24:1.0E}m_H/'
+		save_dir = data_dir+f'shell_evolution_Mflare_{M_flare/Msun:1.0E}_pISM_{np.abs(p_ism)}_rhoISM0_{rho_ism0/1e-24:1.0E}m_H/'
 		if not os.path.exists(save_dir):
 			os.mkdir(save_dir)
 		else:
