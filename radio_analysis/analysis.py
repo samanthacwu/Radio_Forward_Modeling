@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+import os
 
 from hydro_evol.model import Model
 from hydro_evol.constants_list import *
