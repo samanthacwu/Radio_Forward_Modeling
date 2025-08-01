@@ -200,7 +200,7 @@ plt.close()
 # first, establish RHS function and the finite difference scheme for RHS
 from solvers import elec_time_evol, euler, RK4, df_dx
 from calcs import evolve_ODE
-plt.style.use('/Users/samwu/codes/current_projects/RadioTDEFlares/plot_styles.mplstyle_new')
+plt.style.use('plot_styles.mplstyle_new')
 
 #quickly test the FD scheme - it works :)
 # a_prime=df_dx2(a_func(gamma_e_vals,t=times[0]), delta_gamma)

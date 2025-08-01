@@ -5,7 +5,7 @@ import argparse
 from scipy.interpolate import interp1d
 from matplotlib.colors import LogNorm
 
-plt.style.use('/Users/samwu/codes/current_projects/RadioTDEFlares/plot_styles.mplstyle_new')
+plt.style.use('plot_styles.mplstyle_new')
 parser = argparse.ArgumentParser(description='''Analyze spectrum evolution ''')
 parser.add_argument('--model_dir',type=str,default='',help='Path to input model directory')  #e.g. './2.898M_Porb10/'
 parser.add_argument('--data_dir',type=str,default='./evolve_spectrum/',help='Path to spectrum output files')
