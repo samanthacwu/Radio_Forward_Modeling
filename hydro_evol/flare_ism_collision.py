@@ -14,7 +14,7 @@ color_array = plt.rcParams['axes.prop_cycle'].by_key()['color']
 c = 2.9989e10
 Msun = 1.989e33
 yr_to_sec = 3.156e7
-pc_cm = 3.086e16 # cm in a parsec
+pc_cm = 3.086e18 # cm in a parsec
 
 def rho_flare(r, t, A_norm, v_min, v_max,p=0.5): 
 	# only exists for v_min < v=r/t < v_max
@@ -26,6 +26,22 @@ def rho_flare(r, t, A_norm, v_min, v_max,p=0.5):
 def rho_ism_func(r,rho_ism0,r0=1e16,p=-2.5): #r0 in cm
 	# power-law density ISM
 	return rho_ism0 * (r/r0)**p
+
+# def r_out_func(rho_ism0,MBH,rf=1e21,ri=1e-2,p=-2.5):
+# 	# calculate the outer radius for integration of rho^2
+	
+#     rho1_int_arr = np.array([])
+#     r_array = np.logspace(np.log10(ri), np.log10(rf), 1000) 
+#     rho1_rsq_gtr_rsh = [4*np.pi*rho_ism_func(r,rho_ism0,p=p)*r**2 for r in r_array]
+#     # print(rho1_rsq_gtr_rsh)
+#     for i in np.arange(len(r_array)):
+#         if i>1:
+#             rho1_int_arr = np.append(rho1_int_arr, simpson(rho1_rsq_gtr_rsh[:i], r_array[:i]))
+
+#     r_out = r_array[np.argmin(np.abs(rho1_int_arr - 2*MBH*Msun))]
+
+#     return r_out
+
 
 def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,r_out=pc_cm,data_dir='./evolve_spectrum/'):
 	"""
@@ -45,8 +61,8 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 	v_min = v_min_c * c
 	v_max = v_max_c * c
 
-	rho_ism_arr = np.array(rho_ism0s)*1e-24 # g/cm^3
-
+	rho_ism_arr = np.array(rho_ism0s)*1.e-24 # g/cm^3
+	
 	# plot shell radius and mass as function of time
 	plt.rcParams['font.size'] = 15
 	fig, axes = plt.subplots(2, 2, figsize=(11, 10))
@@ -90,6 +106,9 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 
 	for i, rho_ism0 in enumerate(rho_ism_arr):
 		
+		# r_out = r_out_func(rho_ism0,MBH=1e7,p=p_ism
+		
+		print('Integrating to outer radius of r_out=',r_out/pc_cm, 'pc for rho_ism0 =', rho_ism0/1e-24, 'm_H')
 		# initial conditions at collision
 		t0 = t0_in * yr_to_sec #this was chosen arbitrarily, but should be smaller if time to peak could be comparable
 		#v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
@@ -149,7 +168,8 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 			rho2_arr = np.append(rho2_arr, rho_fl_2)
 			# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
 			#just use some large radius instead here since v_max is not limiting the end of the flare in the ISM case
-			r_gtr_rsh = np.logspace(math.log10(rsh), r_out, 100) #set r_out earlier to be ~pc scale?
+			
+			r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(r_out), 100) #set r_out earlier to be ~pc scale?
 			rho1_gtr_rsh = [rho_ism_func(r,rho_ism0,p=p_ism)**2 for r in r_gtr_rsh]
 			# rho1_gtr_rsh = [rho_flare(r, t, A, v_min, v_max)**2 for r in r_gtr_rsh]
 			rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))

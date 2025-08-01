@@ -11,4 +11,5 @@ Rsun = 6.96e10
 
 secinyear = 3.154e7
 secinday = 86400
-
+pc_cm = 3.086e18 # cm in a parsec
+AU_cm = 1.496e13 # cm in an AU
