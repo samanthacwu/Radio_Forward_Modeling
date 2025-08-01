@@ -138,7 +138,7 @@ for i, rho_ism0 in enumerate(rho_ism_arr):
 		rho2_arr = np.append(rho2_arr, rho_fl_2)
 		# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
 		r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(v_max*t), 100)
-		rho1_gtr_rsh = [rho_ism_func(r,rsh_0,rho_ism0)**2 for r in r_gtr_rsh]
+		rho1_gtr_rsh = [rho_ism_func(r,rho_ism0)**2 for r in r_gtr_rsh]
 		# rho1_gtr_rsh = [rho_flare(r, t, A, v_min, v_max)**2 for r in r_gtr_rsh]
 		rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 	# plot evolution of shell parameters
