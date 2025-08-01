@@ -14,6 +14,7 @@ color_array = plt.rcParams['axes.prop_cycle'].by_key()['color']
 c = 2.9989e10
 Msun = 1.989e33
 yr_to_sec = 3.156e7
+pc_cm = 3.086e16 # cm in a parsec
 
 def rho_flare(r, t, A_norm, v_min, v_max,p=0.5): 
 	# only exists for v_min < v=r/t < v_max
@@ -26,7 +27,7 @@ def rho_ism_func(r,rho_ism0,r0=1e16,p=-2.5): #r0 in cm
 	# power-law density ISM
 	return rho_ism0 * (r/r0)**p
 
-def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,data_dir='./evolve_spectrum/'):
+def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,r_out=pc_cm,data_dir='./evolve_spectrum/'):
 	"""
 		M_flare: flare mass in solar masses
 		rho_ism0s: (list of) ISM density scales in units of m_h= 10^{-24} g/cm^3. For power law ISM, should be scaled to r0=1e16 cm.
@@ -35,6 +36,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 		t0_in: initial time in years
 		p: power-law index of flare density profile
 		p_ism: power-law index of ISM density profile. use p=0 to study constant ISM density.
+		r_out: outer radius to integrate rho^2 for free-free absorption.
 		data_dir: directory to save output data
 	"""
 	# model parameters
@@ -147,7 +149,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 			rho2_arr = np.append(rho2_arr, rho_fl_2)
 			# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
 			#just use some large radius instead here since v_max is not limiting the end of the flare in the ISM case
-			r_gtr_rsh = np.logspace(math.log10(rsh), 20, 100)
+			r_gtr_rsh = np.logspace(math.log10(rsh), r_out, 100) #set r_out earlier to be ~pc scale?
 			rho1_gtr_rsh = [rho_ism_func(r,rho_ism0,p=p_ism)**2 for r in r_gtr_rsh]
 			# rho1_gtr_rsh = [rho_flare(r, t, A, v_min, v_max)**2 for r in r_gtr_rsh]
 			rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
