@@ -7,6 +7,11 @@ from hydro_evol.constants_list import *
 from .spectrum_evolution import gamma_e_func
 from .radio_tools import *
 
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+style_path = os.path.join(script_dir, '../plot_styles.mplstyle_new')
+plt.style.use(style_path)
+
 def analyze_multiwavelength_spectrum(simtype,data_dir,freq_in,T_e_csm,dNdgamma_dir_in='',f_omega=1):
     """
     Analyze multiwavelength spectrum evolution from simulation data.
