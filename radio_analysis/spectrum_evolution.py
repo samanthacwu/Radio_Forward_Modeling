@@ -43,7 +43,7 @@ def q_e(gamma_e,t,vsh_func,rsh_func,n0_func,p,f_omega=1):
     return f_omega*4 * np.pi * rsh_func(t)**2 * vsh_func(t) * dndgamma_func(gamma_e,n0_func(t),p)
 coeff_rad_ND_func = lambda t,B_func,tdyn_t0: -((sigma_T * B_func(t)**2)/(6 * np.pi * m_e * c))*tdyn_t0
 
-def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3, tf_in=1e2, max_step_in=1e2, print_int=1e2):
+def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3, tf_in=1e2, max_step_in=1e2, print_int=1e2,plotting=True):
     """
     Run evolution of spectrum given hydrodynamical shock info.
     
@@ -112,28 +112,28 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3
         Qfunc = lambda x,t: c3(t)*np.ones(len(x))
         print('c1(0)',c1(m.times[0]/m.tdyn_t0),'c2(0)',c2(m.times[0]/m.tdyn_t0),'c3(0)', c3(m.times[0]/m.tdyn_t0) )
 
+        if plotting:
+            plt.figure()
+            plt.plot(m.times/secinyear,B_ND_func(m.times/m.tdyn_t0))
+            plt.plot(m.times/secinyear,B_of_t,ls=':')
+            plt.xlabel('Time (yr)')
+            plt.ylabel('B field')
+            plt.xscale('log')
+            plt.yscale('log')
+            plt.show()
+            plt.close()
 
-        plt.figure()
-        plt.plot(m.times/secinyear,B_ND_func(m.times/m.tdyn_t0))
-        plt.plot(m.times/secinyear,B_of_t,ls=':')
-        plt.xlabel('Time (yr)')
-        plt.ylabel('B field')
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.show()
-        plt.close()
-
-        plt.figure()
-        plt.plot(m.times/secinyear,vsh_ND_func(m.times/m.tdyn_t0))
-        plt.plot(m.times/secinyear,vsh_of_t/m.vsh_t0,label=f'{flare} shock velocity',ls='--')
-        plt.plot(m.times/secinyear,m.vsh/m.vsh_t0,label='shock velocity',ls=':',color='black')
-        plt.xlabel('Time (yr)')
-        plt.ylabel('vel')
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.legend()
-        plt.show()
-        plt.close()
+            plt.figure()
+            plt.plot(m.times/secinyear,vsh_ND_func(m.times/m.tdyn_t0))
+            plt.plot(m.times/secinyear,vsh_of_t/m.vsh_t0,label=f'{flare} shock velocity',ls='--')
+            plt.plot(m.times/secinyear,m.vsh/m.vsh_t0,label='shock velocity',ls=':',color='black')
+            plt.xlabel('Time (yr)')
+            plt.ylabel('vel')
+            plt.xscale('log')
+            plt.yscale('log')
+            plt.legend()
+            plt.show()
+            plt.close()
 
         #_________set system parameters____________
 
