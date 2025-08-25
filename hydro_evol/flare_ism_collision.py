@@ -43,7 +43,7 @@ def rho_ism_func(r,rho_ism0,r0=1e16,p=-2.5): #r0 in cm
 #     return r_out
 
 
-def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,r_out=pc_cm,data_dir='./evolve_spectrum/'):
+def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,p=0.5,p_ism=-2.5,r_out=pc_cm,data_dir='./evolve_spectrum/'):
 	"""
 		M_flare: flare mass in solar masses
 		rho_ism0s: (list of) ISM density scales in units of m_h= 10^{-24} g/cm^3. For power law ISM, should be scaled to r0=1e16 cm.
@@ -137,7 +137,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,p=0.5,p_ism=-2.5,
 		dMdt_arr = np.array([]) 
 		print("initial t: %s sec" % t)
 		# solve shock propagation
-		while t < 11000*t0:
+		while t < stop_ratio*t0:
 			# make sure shell doesn't expand too much at one timestep
 			dt = 1e-3*(rsh/vsh)
 			# get current rho_flare
