@@ -24,7 +24,7 @@ def rho_flare(r, t, A_norm, v_min, v_max,p=0.5):
 	else:
 		return A_norm/t**3 * (r/v_max/t)**(-2.*p-3.)
 
-def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spectrum/'):
+def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spectrum/',dt_scale=1e-3):
 	"""
 		M_flares: (list of) flare masses in solar masses
 		delta_ts: (list of) time between flares in years
@@ -116,7 +116,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 			# solve shock propagation
 			while t < 1000*t0:
 				# make sure shell doesn't expand too much at one timestep
-				dt = 1e-3*(rsh/vsh)
+				dt = dt_scale*(rsh/vsh)
 				# get current rho_flare
 				rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max)
 				rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max)

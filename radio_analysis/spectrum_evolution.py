@@ -141,7 +141,7 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3
         
 
         t0 = t0_in*secinyear/m.tdyn_t0 #secinyear converted to dynamical time
-        dt0 =dt_scale_in/np.abs(c1(t0)) #should be dt_scale * initial dynamical time
+        dt0 = 1e-2*dt_scale_in/np.abs(c1(t0)) #should be dt_scale * initial dynamical time
         final_age = tf_in*secinyear/m.tdyn_t0  #final time in dynamical time units
 
         print('times/tdyn_t0',m.times/m.tdyn_t0,t0,final_age)
@@ -198,6 +198,9 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3
 
 
             try:
+                # if t_i < 1:
+                #     dt_i = 5e-2*dt_scale_in/np.abs(c1(t_i)) #should be inverse of dynamical time
+                # else:
                 dt_i = dt_scale_in/np.abs(c1(t_i)) #should be inverse of dynamical time
             except:
                 print("error in dt_i",dt_i,t_i,m.times/m.tdyn_t0)
