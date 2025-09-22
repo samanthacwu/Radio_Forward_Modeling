@@ -113,7 +113,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 		#v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
 		Msh_0 = 0.0
 		rsh_0 = v_max * t0 
-		rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max)
+		rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max,p=p)
 		rho_ism_init = rho_ism_func(rsh_0,rho_ism0,p=p_ism) 
 		rho12_ratio = rho_flare_2_init/rho_ism_init
 		vsh_0 = (v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
@@ -143,7 +143,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 			# get current rho_flare
 			# rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max)
 			rho_ism = rho_ism_func(rsh,rho_ism0,p=p_ism)
-			rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max)
+			rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max,p=p)
 			# v_fl_1 = rsh/(t+delta_t)
 			if rho_fl_2 ==0:
 				v_fl_2 = 0 #this only matters for saving v2_arr

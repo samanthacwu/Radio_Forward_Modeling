@@ -90,8 +90,8 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 			Msh_0 = 0.0
 			rsh_0 = v_min*v_max*delta_t / (v_max - v_min) # collision radii
 			# initial vsh set by pressure equilibrium
-			rho_flare_1_init = rho_flare(rsh_0, t0+delta_t, A, v_min, v_max)
-			rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max)
+			rho_flare_1_init = rho_flare(rsh_0, t0+delta_t, A, v_min, v_max,p=p)
+			rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max,p=p)
 			rho12_ratio = rho_flare_2_init/rho_flare_1_init
 			vsh_0 = (v_min + v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
 			#vsh_0 = v_max 
@@ -118,8 +118,8 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				# make sure shell doesn't expand too much at one timestep
 				dt = dt_scale*(rsh/vsh)
 				# get current rho_flare
-				rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max)
-				rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max)
+				rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max,p=p)
+				rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max,p=p)
 				v_fl_1 = rsh/(t+delta_t)
 				v_fl_2 = rsh/t
 				# evolve
@@ -140,7 +140,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				rho2_arr = np.append(rho2_arr, rho_fl_2)
 				# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
 				r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(v_max*t+delta_t), 100)
-				rho1_gtr_rsh = [rho_flare(r, t+delta_t, A, v_min, v_max)**2 for r in r_gtr_rsh]
+				rho1_gtr_rsh = [rho_flare(r, t+delta_t, A, v_min, v_max,p=p)**2 for r in r_gtr_rsh]
 				rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 			# plot evolution of shell parameters
 			ax1.plot((t_arr-t0)/yr_to_sec, rsh_arr, color=color_array[i], label=r'$M_{\rm flare}=$'+f'{M_flare/Msun:1.2E} $M_\odot$, $\Delta t={delta_t/yr_to_sec:0.2f}$ yr')
