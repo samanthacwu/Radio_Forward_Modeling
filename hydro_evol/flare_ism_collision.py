@@ -119,6 +119,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 		vsh_0 = (v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
 		#vsh_0 = v_max 
 		print('Integrating to outer radius of r_out=',r_out/pc_cm, 'pc for rho_ism0 =', rho_ism0/1e-24, 'm_H', 'vsh_0 =', vsh_0/c, 'c')
+		print('A', A, 'rho12_ratio', rho12_ratio, 'rho2_0', rho_flare_2_init)
 		# initialize
 		t = t0
 		Msh = Msh_0

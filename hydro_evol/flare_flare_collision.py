@@ -94,6 +94,8 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 			rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max,p=p)
 			rho12_ratio = rho_flare_2_init/rho_flare_1_init
 			vsh_0 = (v_min + v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
+
+			# print('A', A, 'rho12_ratio', rho12_ratio, 'rho2_0', rho_flare_2_init, 'rho1_0', rho_flare_1_init, 'vsh_0 (c)', vsh_0/c)
 			#vsh_0 = v_max 
 
 			# initialize
