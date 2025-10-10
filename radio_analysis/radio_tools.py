@@ -80,10 +80,11 @@ def emission_absorption_at_time(t,dNdgamma_vals,gamma_e_vals,delta_gamma_e,N_g,n
 def Lnu_obs_spectrum(Lnu_syn,tau_ff,tau_ssa):
     return Lnu_syn*np.exp(-tau_ff)*(1-np.exp(-tau_ssa))/tau_ssa
 
-def tau_ff(densitysq_integral,nu_ph,T_e_csm=1e4): 
-    #need to integrate alpha_ff for all densities outside r_shock(t). uints of t should be in t_dyn_t0 (or use other interp fn?)
-    # assuming X=0.7, Y=0.3
-    mu_e = (0.7+0.5*0.3)**(-1)
+def tau_ff(densitysq_integral,nu_ph,T_e_csm=1e4,X_h=0.7,Y_he=0.3): 
+    # need to integrate alpha_ff for all densities outside r_shock(t). this is done in the densitysq_integral term.
+    # currently assumes metal fraction is close to zero
+    mu_e = (X_h+0.5*Y_he)**(-1)
+    ni_Zsq_term = X_h*1**2/1 + Y_he*2**2/4 #this term is \sum(n_i Z^2) without the factor of rho/m_p. it equals 1 unless there is significant metals
     nu_scale = 10*1e9 #10 GHz
-    tau_ff_arr = 8.4e-28 * (T_e_csm/1e4)**(-1.35) * (nu_ph/nu_scale)**(-2.1) * densitysq_integral/(mu_e*m_p.cgs.value**2) 
+    tau_ff_arr = 8.4e-28 * (T_e_csm/1e4)**(-1.35) * (nu_ph/nu_scale)**(-2.1) * densitysq_integral*ni_Zsq_term/(mu_e*m_p.cgs.value**2) 
     return tau_ff_arr #array vs. nu_ph
