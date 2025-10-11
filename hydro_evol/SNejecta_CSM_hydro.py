@@ -6,7 +6,11 @@ from scipy.interpolate import CubicSpline,interp1d
 from constants_list import *
 from radio_analysis.solvers import euler, RK4
 from .calcs import evolve_ODE, calc_dMdt_shell, calc_dvdt_shell, calc_dEintdt_shell, calc_shell_values
-
+try:
+	from scipy.integrate import simpson
+except:
+	from scipy.integrate import simps as simpson
+    
 def SNejecta_profile(E,Mej,delta=1,n=10):
     g_to_n = 1./(4.*np.pi*(n-delta)) * (2.*(5.-delta)*(n-5.)*E)**(n/2-1.5) / ((3.-delta)*(n-3)*Mej*Msun)**(n/2-2.5)
     v_t = np.sqrt(2.*(5.-delta)*(n-5.)*E / ((3.-delta)*(n-3)*Mej*Msun))
@@ -134,6 +138,11 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
         rshock = rshock_of_t(t)
         
         rhoej_of_t, dv_ejsh, rhoCSM_of_t, dv_shcsm = calc_shell_values(t, shock_velocity, rshock_of_t, g_to_n, v_t, rho_vs_r,f_omega=f_omega)
+
+        ## calculate the density squared integral ahead of the shock for later
+        r_gtr_rsh = np.logspace(np.log10(rshock), np.log10(np.amax(radius_array)), 100)
+        rho1_gtr_rsh = [rho_vs_r(r)**2 for r in r_gtr_rsh]
+        rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 
         if rshock > 0.99*radius_array[0]:
             print("Reached outer radius")
