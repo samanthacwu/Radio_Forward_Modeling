@@ -3,7 +3,7 @@ from copy import copy
 import os
 from functools import partial
 from scipy.interpolate import CubicSpline,interp1d
-from constants_list import *
+from .constants_list import *
 from radio_analysis.solvers import euler, RK4
 from .calcs import evolve_ODE, calc_dMdt_shell, calc_dvdt_shell, calc_dEintdt_shell, calc_shell_values
 try:
@@ -16,10 +16,10 @@ def SNejecta_profile(E,Mej,delta=1,n=10):
     v_t = np.sqrt(2.*(5.-delta)*(n-5.)*E / ((3.-delta)*(n-3)*Mej*Msun))
     return g_to_n,v_t
 
-def Mej(g_to_n,shock_velocity,delta=1,n=10):
+def Mej_calc(g_to_n,shock_velocity,delta=1,n=10):
     return 4.*np.pi*g_to_n*(shock_velocity)**(3.-n) / (n-3.)
 
-def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in=1e-5,tf_in=1e2,t0_in=1.6e-5,max_step=50000,print_int=10000):
+def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in=1e-2,tf_in=1e2,t0_in=1.6e-5,max_step=50000,print_int=10000):
     # rho_prof_path: path to the file containing the density profile of the CSM
     # datadir: place to save output. should be a directory like 
     # f'E_{E:1.2E}_Mej_{Mej_calc:1.2E}_'+'rhoprof_'+f'{he_mass:1.3f}'+'M_'+model_dir.split('/')[-2].split('_')[1]+'_velfac_'+f'{vel_factor:0.2f}'+'_fomega_'+f'{f_omega:0.2f}''/'
@@ -37,7 +37,7 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
     rho_prof_vs_r = np.load(rho_prof_path)
     print(f"Shock Energy = {E:1.2E} (erg), Ejecta mass = {Mej:1.2E} (Msun), t0 = {t0_in:1.2E} (yr), R0 = {R0_in:1.3E} (AU),tf = {tf_in:1.2E} (yr)","f_omega",f_omega)
     print('rho_prof',rho_prof_path)
-    v_t, g_to_n = SNejecta_profile(E,Mej)
+    g_to_n,v_t = SNejecta_profile(E,Mej)
     print('v_t (km/s)',v_t/1e5,'g_to_n',g_to_n)
 
     dt0 = dt_in*secinyear 
@@ -67,7 +67,6 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
 
     print('Minimum radius (AU)', f'{np.amin(radius_array)/AU_cm:1.5E}', 'Maximum radius (AU)',f'{np.amax(radius_array)/AU_cm:1.5E}')
 
-
     #save values of times, shock parameters, etc.
     t_saved = np.array([],dtype=np.float64)
     dt_saved = np.array([],dtype=np.float64)
@@ -85,6 +84,8 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
     dv_ejsh_saved = np.array([],dtype=np.float64)
     dv_shcsm_saved = np.array([],dtype=np.float64)
 
+    rho1sq_int_arr = np.array([],dtype=np.float64) #to save the integral of rho^2 outside the shock at each time
+
     while (t_i < final_age) and (count < max_step) and (dt_i > min_dt) and (stop == False):
 
         if count == 0:
@@ -93,7 +94,7 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
             shock_velocity_i = R0 / t0 # cm/s
             # initial shell mass is set to mass occupied by power-law ejecta from initial velocity outwards
             # \int_(v_sh)^(+inf) 4pi*(t*v)**2*rho_ej*(t*dv) = 4pi*g^n*v^(1-n)/(n-1)
-            Menc_i = Mej(g_to_n,shock_velocity_i) #g
+            Menc_i = Mej_calc(g_to_n,shock_velocity_i) #g
             rshock_i = copy(R0) #cm
             Eint_i = 0.5*Menc_i*shock_velocity_i**2 #erg
             print('Menc_i',Menc_i,'E_int_i',Eint_i)
@@ -168,7 +169,7 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
 
         if count % save_interval == 0:
             np.savez(rundir+'/shock_data.npz',dts=dt_saved,times=t_saved,rsh_of_t=rshock_saved,vsh_of_t=vshock_saved,
-                     Menc_of_t=Menc_saved,Eint_of_t=Eint_saved,
+                     Menc_of_t=Menc_saved,Eint_of_t=Eint_saved, rho1sq_int_of_t=rho1sq_int_arr,
                      rhoCSM_of_t=rhoCSM_saved,rhoej_of_t=rhoej_saved,dv_ejsh=dv_ejsh_saved,dv_shcsm=dv_shcsm_saved)
         
         if (dt_i <= min_dt):
@@ -187,6 +188,6 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
         print("dts (yr)",dt_saved[inds]/secinyear)
         print("times (yr)",t_saved[inds]/secinyear)
     np.savez(rundir+'/shock_data.npz',dts=dt_saved,times=t_saved,rsh_of_t=rshock_saved,vsh_of_t=vshock_saved,
-                     Menc_of_t=Menc_saved,Eint_of_t=Eint_saved,
+                     Menc_of_t=Menc_saved,Eint_of_t=Eint_saved, rho1sq_int_of_t=rho1sq_int_arr,
                      rhoCSM_of_t=rhoCSM_saved,rhoej_of_t=rhoej_saved,dv_ejsh=dv_ejsh_saved,dv_shcsm=dv_shcsm_saved)
     return
