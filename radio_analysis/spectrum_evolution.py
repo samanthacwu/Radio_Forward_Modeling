@@ -167,7 +167,7 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3
         #save values of times, dNdgamma values, etc.
         y_saved = np.array([],dtype=np.float64)
         t_saved = np.array([],dtype=np.float64)
-        dt_saved = np.array([],dtype=np.float64)
+        dt_saved = np.array([0],dtype=np.float64)
         
         print("initial shock radius, shock velocity, normalization constant", f'{m.rsh_func(t_i*m.tdyn_t0):1.3E},{m.vsh_tot_func(t_i*m.tdyn_t0):1.3E},{n0_func(t_i*m.tdyn_t0):1.3E}')
 
@@ -178,14 +178,13 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3
             if count == 0:
                 t_i = copy(t0) #sec
                 y_i = np.zeros_like(gamma_e_vals) #initial condition. y_i is dNdgamma here
+
+                y_saved = np.append(y_saved,y_i)
+                t_saved = np.append(t_saved,t_i)
             else:
                 t_i = copy(t)
                 y_i = copy(y_next) #array of length gamma_e_vals
             
-            # if t_i < 1e-1*secinyear:
-            #     # dt_i = 1e-7*secinyear
-            #     dt_i = 1e-6*secinyear
-            # else:
             dt_i = copy(dt0)
             #just fix dt for now
             if count % print_interval == 0:
@@ -198,8 +197,9 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3
 
 
             try:
-                # if t_i < 1:
+                # if t_i*m.tdyn_t0-t0_in*secinyear < 1e-2*secinyear:
                 #     dt_i = 5e-2*dt_scale_in/np.abs(c1(t_i)) #should be inverse of dynamical time
+                #     # print('reduced timestep',t_i,dt_i)
                 # else:
                 dt_i = dt_scale_in/np.abs(c1(t_i)) #should be inverse of dynamical time
             except:

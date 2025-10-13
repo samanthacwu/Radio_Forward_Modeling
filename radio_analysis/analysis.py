@@ -88,14 +88,16 @@ def analyze_multiwavelength_spectrum(simtype,data_dir,freq_in,T_e_csm,dNdgamma_d
                 times_out[j] = t*m.tdyn_t0
                 j+=1
 
-        tau_ff_atfreq= np.trim_zeros(tau_ff_atfreq)
-        Lnu_atfreq = np.trim_zeros(Lnu_atfreq)
-        tau_ssa_atfreq = np.trim_zeros(tau_ssa_atfreq)
-        times_out = np.trim_zeros(times_out)  #in seconds now
+        tau_ff_atfreq= np.trim_zeros(tau_ff_atfreq,trim='b')
+        Lnu_atfreq = np.trim_zeros(Lnu_atfreq,trim='b')
+        tau_ssa_atfreq = np.trim_zeros(tau_ssa_atfreq,trim='b')
+        times_out = np.trim_zeros(times_out,trim='b')  #in seconds now
         # print(tau_ssa_atfreq)
-        Lnu_abs_atfreq = Lnu_atfreq*np.exp(-tau_ff_atfreq)*(1-np.exp(-tau_ssa_atfreq))/tau_ssa_atfreq
+        tau_ssa_atfreq_term = (1-np.exp(-tau_ssa_atfreq))/tau_ssa_atfreq
+        tau_ssa_atfreq_term[np.isnan(tau_ssa_atfreq_term)] = 0.0 # handle 0/0 case
+        Lnu_abs_atfreq = Lnu_atfreq*np.exp(-tau_ff_atfreq)*tau_ssa_atfreq_term
         print(np.amax(Lnu_atfreq),np.amin(Lnu_atfreq))
-        plt.plot(times_out/secinyear,Lnu_atfreq*np.exp(-tau_ff_atfreq)*(1-np.exp(-tau_ssa_atfreq))/tau_ssa_atfreq)
+        plt.plot(times_out/secinyear,Lnu_abs_atfreq)
         #,color=colors[int((count-7000)/600)])
         plt.yscale('log')
         plt.xscale('log')

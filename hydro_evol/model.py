@@ -34,9 +34,11 @@ class Model:
             # this one will run once for fwd shock only (uses rhoISM and vsh)
             self.vsh_fwd = self.vsh
             self.rho_fwd = self.rhoISM = d['rho_ism'] #g/cm^3
-
+        elif simtype == 'SNejecta_CSM':
+            self.vsh_fwd = self.vsh
+            self.rho_fwd = self.rhoCSM = d['rho_csm'] #g/cm^3
         else:
-            raise ValueError("Invalid simulation type. Use 'flare_flare' or 'flare_ism'.")
+            raise ValueError("Invalid simulation type. Use 'flare_flare', 'flare_ism', or 'SNejecta_CSM'.")
 
         self.B_fwd = self.compute_B(self.rho_fwd,self.vsh_fwd)
         self.n0_fwd = self.compute_n0(self.rho_fwd,self.vsh_fwd) 

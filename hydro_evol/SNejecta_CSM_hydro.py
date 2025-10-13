@@ -102,6 +102,7 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
             vshock_saved = np.append(vshock_saved,shock_velocity_i) #cm/s
             Menc_saved = np.append(Menc_saved,Menc_i) #g
             Eint_saved = np.append(Eint_saved,Eint_i) #erg
+            rhoCSM_saved = np.append(rhoCSM_saved,rho_vs_r(rshock_i)) #g/cm^3
         else:
             t_i = copy(t)
             Menc_i = copy(Menc)
@@ -188,6 +189,6 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
         print("dts (yr)",dt_saved[inds]/secinyear)
         print("times (yr)",t_saved[inds]/secinyear)
     np.savez(rundir+'/shock_data.npz',dts=dt_saved,times=t_saved,rsh_of_t=rshock_saved,vsh_of_t=vshock_saved,
-                     Menc_of_t=Menc_saved,Eint_of_t=Eint_saved, rho1sq_int_of_t=rho1sq_int_arr,
-                     rhoCSM_of_t=rhoCSM_saved,rhoej_of_t=rhoej_saved,dv_ejsh=dv_ejsh_saved,dv_shcsm=dv_shcsm_saved)
+                     Menc_of_t=Menc_saved,Eint_of_t=Eint_saved, int_rhofl_1_sq_dr=rho1sq_int_arr,
+                     rho_csm=rhoCSM_saved,rho_ej=rhoej_saved,dv_ejsh=dv_ejsh_saved,dv_shcsm=dv_shcsm_saved)
     return
