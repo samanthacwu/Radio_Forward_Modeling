@@ -43,7 +43,7 @@ def q_e(gamma_e,t,vsh_func,rsh_func,n0_func,p,f_omega=1):
     return f_omega*4 * np.pi * rsh_func(t)**2 * vsh_func(t) * dndgamma_func(gamma_e,n0_func(t),p)
 coeff_rad_ND_func = lambda t,B_func,tdyn_t0: -((sigma_T * B_func(t)**2)/(6 * np.pi * m_e * c))*tdyn_t0
 
-def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3, tf_in=1e2, max_step_in=1e2, print_int=1e2,plotting=True):
+def evolve_spectrum(m,simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3, tf_in=1e2, max_step_in=1e2, print_int=1e2,plotting=True):
     """
     Run evolution of spectrum given hydrodynamical shock info.
     
@@ -63,7 +63,7 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3
     else:
         save_dir = save_dir_in
 
-    m = Model(data_dir+'shock_data.npz',simtype=simtype)
+    # m = Model(data_dir+'shock_data.npz',simtype=simtype)
     m.generate_ND_interp_funcs(simtype)
     m.generate_interp_funcs(simtype)
 

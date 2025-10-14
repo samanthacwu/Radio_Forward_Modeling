@@ -54,6 +54,7 @@ class Model:
             self.times = self.times[i_start:]-self.times[i_start]
             self.vsh_fwd = self.vsh_fwd[i_start:]
             self.rsh = self.rsh[i_start:]
+            self.vsh = self.vsh[i_start:]
             self.rho_fwd = self.rho_fwd[i_start:]
             self.int_rhofwd_sq_dr = self.int_rhofwd_sq_dr[i_start:]
 

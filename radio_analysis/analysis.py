@@ -13,7 +13,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 style_path = os.path.join(script_dir, '../plot_styles.mplstyle_new')
 plt.style.use(style_path)
 
-def analyze_multiwavelength_spectrum(simtype,data_dir,freq_in,T_e_csm,dNdgamma_dir_in='',f_omega=1):
+def analyze_multiwavelength_spectrum(m,simtype,data_dir,freq_in,T_e_csm,dNdgamma_dir_in='',f_omega=1):
     """
     Analyze multiwavelength spectrum evolution from simulation data.
         
@@ -36,7 +36,7 @@ def analyze_multiwavelength_spectrum(simtype,data_dir,freq_in,T_e_csm,dNdgamma_d
     elif simtype=='flare_ism':
         flare_list=['fwd']
 
-    m = Model(data_dir+'shock_data.npz',simtype=simtype)
+    # m = Model(data_dir+'shock_data.npz',simtype=simtype)
     m.generate_ND_interp_funcs(simtype)
     m.generate_interp_funcs(simtype)
 
@@ -118,7 +118,7 @@ def analyze_multiwavelength_spectrum(simtype,data_dir,freq_in,T_e_csm,dNdgamma_d
                 Lnu_atfreq=Lnu_atfreq,tau_ff_atfreq=tau_ff_atfreq,tau_ssa_atfreq=tau_ssa_atfreq,
                 times_yr=times_out/secinyear,Lnu_abs_atfreq=Lnu_abs_atfreq)
 
-def analyze_SED(simtype,data_dir,freq_in,T_e_csm,
+def analyze_SED(m,simtype,data_dir,freq_in,T_e_csm,
                 epoch_list,dNdgamma_dir_in='',f_omega=1,tval_ind=1000,SED_interval=100):
     """
     Analyze multiwavelength spectrum evolution from simulation data.
@@ -146,7 +146,7 @@ def analyze_SED(simtype,data_dir,freq_in,T_e_csm,
     elif simtype=='flare_ism':
         flare_list=['fwd']
 
-    m = Model(data_dir+'shock_data.npz',simtype=simtype)
+    # m = Model(data_dir+'shock_data.npz',simtype=simtype)
     m.generate_ND_interp_funcs(simtype)
     m.generate_interp_funcs(simtype)
 
