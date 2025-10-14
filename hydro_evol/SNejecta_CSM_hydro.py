@@ -98,6 +98,10 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
             rshock_i = copy(R0) #cm
             Eint_i = 0.5*Menc_i*shock_velocity_i**2 #erg
             print('Menc_i',Menc_i,'E_int_i',Eint_i)
+            
+            r_gtr_rsh = np.logspace(np.log10(rshock_i), np.log10(np.amax(radius_array)), 500)
+            rho1_gtr_rsh = [rho_vs_r(r)**2 for r in r_gtr_rsh]
+            rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 
             vshock_saved = np.append(vshock_saved,shock_velocity_i) #cm/s
             Menc_saved = np.append(Menc_saved,Menc_i) #g
@@ -142,7 +146,7 @@ def evolve_ejectaCSM_shock(rho_prof_path,rundir,E,Mej,f_omega=1,R0_in=0.11,dt_in
         rhoej_of_t, dv_ejsh, rhoCSM_of_t, dv_shcsm = calc_shell_values(t, shock_velocity, rshock_of_t, g_to_n, v_t, rho_vs_r,f_omega=f_omega)
 
         ## calculate the density squared integral ahead of the shock for later
-        r_gtr_rsh = np.logspace(np.log10(rshock), np.log10(np.amax(radius_array)), 100)
+        r_gtr_rsh = np.logspace(np.log10(rshock), np.log10(np.amax(radius_array)), 500)
         rho1_gtr_rsh = [rho_vs_r(r)**2 for r in r_gtr_rsh]
         rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 

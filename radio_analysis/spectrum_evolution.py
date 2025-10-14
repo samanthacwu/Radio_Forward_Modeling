@@ -72,7 +72,7 @@ def evolve_spectrum(simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e-3
 
     if simtype=='flare_flare':
         flare_list=['fwd','bwd']
-    elif simtype=='flare_ism':
+    elif simtype=='flare_ism' or simtype=='SNejecta_CSM':
         flare_list=['fwd']
 
 
