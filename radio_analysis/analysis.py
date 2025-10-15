@@ -33,7 +33,7 @@ def analyze_multiwavelength_spectrum(m,simtype,data_dir,freq_in,T_e_csm,dNdgamma
 
     if simtype=='flare_flare':
         flare_list=['fwd','bwd']
-    elif simtype=='flare_ism':
+    elif simtype=='flare_ism' or simtype=='SNejecta_CSM':
         flare_list=['fwd']
 
     # m = Model(data_dir+'shock_data.npz',simtype=simtype)
@@ -79,7 +79,7 @@ def analyze_multiwavelength_spectrum(m,simtype,data_dir,freq_in,T_e_csm,dNdgamma
         for i,t in enumerate(tvals): #in units of tdyn_t0
             if i % 10 ==0:
                 # print(i)
-                tau_ff_test = tau_ff(m.int_rhofwd_sq_dr_func(t*m.tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm)
+                tau_ff_test = tau_ff(m.int_rhofwd_sq_dr_func(t*m.tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm,X_h=m.X_H,Y_he=m.X_He)
                 tau_ff_atfreq[j] = tau_ff_test[index_atfreq]
                 Lnu_test,tau_ssa_test = emission_absorption_at_time(tvals[i],dNdgamma_vals[i],gamma_e_vals,delta_gamma_e,m.N_g,nu_ph_vals,
                                                                     m.rsh_ND_func,m.rsh_t0,B_ND_func,f_omega=f_omega)
@@ -95,6 +95,7 @@ def analyze_multiwavelength_spectrum(m,simtype,data_dir,freq_in,T_e_csm,dNdgamma
         # print(tau_ssa_atfreq)
         tau_ssa_atfreq_term = (1-np.exp(-tau_ssa_atfreq))/tau_ssa_atfreq
         tau_ssa_atfreq_term[np.isnan(tau_ssa_atfreq_term)] = 0.0 # handle 0/0 case
+        Lnu_atfreq[np.isnan(Lnu_atfreq)] = 0.0
         Lnu_abs_atfreq = Lnu_atfreq*np.exp(-tau_ff_atfreq)*tau_ssa_atfreq_term
         print(np.amax(Lnu_atfreq),np.amin(Lnu_atfreq))
         plt.plot(times_out/secinyear,Lnu_abs_atfreq)
@@ -143,7 +144,7 @@ def analyze_SED(m,simtype,data_dir,freq_in,T_e_csm,
 
     if simtype=='flare_flare':
         flare_list=['fwd','bwd']
-    elif simtype=='flare_ism':
+    elif simtype=='flare_ism' or simtype=='SNejecta_CSM':
         flare_list=['fwd']
 
     # m = Model(data_dir+'shock_data.npz',simtype=simtype)
