@@ -197,11 +197,12 @@ def evolve_spectrum(m,simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e
 
 
             try:
-                # if t_i*m.tdyn_t0-t0_in*secinyear < 1e-2*secinyear:
-                #     dt_i = 5e-2*dt_scale_in/np.abs(c1(t_i)) #should be inverse of dynamical time
-                #     # print('reduced timestep',t_i,dt_i)
-                # else:
-                dt_i = dt_scale_in/np.abs(c1(t_i)) #should be inverse of dynamical time
+                # if t_i*m.tdyn_t0-t0_in*secinyear < 0.1e-2*secinyear:
+                if count < 10:
+                    dt_i = 1e-6*dt_scale_in/np.abs(c1(t_i)) #should be inverse of dynamical time
+                    # print('reduced timestep',t_i,dt_i)
+                else:
+                    dt_i = dt_scale_in/np.abs(c1(t_i)) #should be inverse of dynamical time
             except:
                 print("error in dt_i",dt_i,t_i,m.times/m.tdyn_t0)
             #### time evolution

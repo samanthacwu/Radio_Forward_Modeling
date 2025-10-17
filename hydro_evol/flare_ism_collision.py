@@ -23,7 +23,7 @@ def rho_flare(r, t, A_norm, v_min, v_max,p=0.5):
 	else:
 		return A_norm/t**3 * (r/v_max/t)**(-2.*p-3.)
 	
-def rho_ism_func(r,rho_ism0,r0=1e16,p=-2.5): #r0 in cm
+def rho_ism_func(r,rho_ism0,r0=1e17,p=-2.5): #r0 in cm
 	# power-law density ISM
 	return rho_ism0 * (r/r0)**p
 
@@ -43,7 +43,7 @@ def rho_ism_func(r,rho_ism0,r0=1e16,p=-2.5): #r0 in cm
 #     return r_out
 
 
-def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,p=0.5,p_ism=-2.5,r_out=pc_cm,data_dir='./evolve_spectrum/'):
+def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,p=0.5,p_ism=-2.5,r0_ism=1e17,r_out=pc_cm,data_dir='./evolve_spectrum/'):
 	"""
 		M_flare: flare mass in solar masses
 		rho_ism0s: (list of) ISM density scales in units of m_h= 10^{-24} g/cm^3. For power law ISM, should be scaled to r0=1e16 cm.
@@ -52,6 +52,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 		t0_in: initial time in years
 		p: power-law index of flare density profile
 		p_ism: power-law index of ISM density profile. use p=0 to study constant ISM density.
+		r0_ism: radius to normalize ISM density profile (in cm)
 		r_out: outer radius to integrate rho^2 for free-free absorption.
 		data_dir: directory to save output data
 	"""
@@ -114,7 +115,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 		Msh_0 = 0.0
 		rsh_0 = v_max * t0 
 		rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max,p=p)
-		rho_ism_init = rho_ism_func(rsh_0,rho_ism0,p=p_ism) 
+		rho_ism_init = rho_ism_func(rsh_0,rho_ism0,p=p_ism,r0=r0_ism) 
 		rho12_ratio = rho_flare_2_init/rho_ism_init
 		vsh_0 = (v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
 		#vsh_0 = v_max 
@@ -143,7 +144,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 			dt = 1e-3*(rsh/vsh)
 			# get current rho_flare
 			# rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max)
-			rho_ism = rho_ism_func(rsh,rho_ism0,p=p_ism)
+			rho_ism = rho_ism_func(rsh,rho_ism0,p=p_ism,r0=r0_ism)
 			rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max,p=p)
 			# v_fl_1 = rsh/(t+delta_t)
 			if rho_fl_2 ==0:
@@ -170,7 +171,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 			#just use some large radius instead here since v_max is not limiting the end of the flare in the ISM case
 			
 			r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(r_out), 100) #set r_out earlier to be ~pc scale?
-			rho1_gtr_rsh = [rho_ism_func(r,rho_ism0,p=p_ism)**2 for r in r_gtr_rsh]
+			rho1_gtr_rsh = [rho_ism_func(r,rho_ism0,p=p_ism,r0=r0_ism)**2 for r in r_gtr_rsh]
 			# rho1_gtr_rsh = [rho_flare(r, t, A, v_min, v_max)**2 for r in r_gtr_rsh]
 			rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 		# plot evolution of shell parameters
