@@ -34,15 +34,19 @@ class Model:
             self.vsh_bwd = self.deltav_2 = d['deltav2_of_t']
 
         elif simtype == 'flare_ism':
-            # this one will run once for fwd shock only (uses rhoISM and vsh)
+            # the following will run once for fwd shock only (uses rhoISM and vsh)
             self.vsh_fwd = self.vsh
             self.rho_fwd = self.rhoISM = d['rho_ism'] #g/cm^3
         elif simtype == 'SNejecta_CSM':
             self.vsh_fwd = self.vsh
             self.rho_fwd = self.rhoCSM = d['rho_csm'] #g/cm^3
             self.f_omega = f_omega
+        elif simtype == 'flare_MiscExt':
+            # when user is running own miscellaneous external density profile. should have rho_ext in data file and use their own flare_ext_collision.py file.
+            self.vsh_fwd = self.vsh
+            self.rho_fwd = self.rhoISM = d['rho_ext'] #g/cm^3
         else:
-            raise ValueError("Invalid simulation type. Use 'flare_flare', 'flare_ism', or 'SNejecta_CSM'.")
+            raise ValueError("Invalid simulation type. Use 'flare_flare', 'flare_ism', 'SNejecta_CSM', or 'flare_MiscExt.")
 
         if calculate_SBO:
             i_start = self.shock_breakout_index(self.kappa)
