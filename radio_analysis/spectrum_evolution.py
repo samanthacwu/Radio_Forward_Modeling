@@ -72,7 +72,7 @@ def evolve_spectrum(m,simtype, data_dir, save_dir_in='', t0_in=0, dt_scale_in=1e
 
     if simtype=='flare_flare':
         flare_list=['fwd','bwd']
-    elif simtype=='flare_ism' or simtype=='SNejecta_CSM':
+    else: #all others only run fwd shock
         flare_list=['fwd']
 
 

@@ -33,7 +33,7 @@ def analyze_multiwavelength_spectrum(m,simtype,data_dir,freq_in,T_e_csm,dNdgamma
 
     if simtype=='flare_flare':
         flare_list=['fwd','bwd']
-    elif simtype=='flare_ism' or simtype=='SNejecta_CSM':
+    else:
         flare_list=['fwd']
 
     # m = Model(data_dir+'shock_data.npz',simtype=simtype)
@@ -144,7 +144,7 @@ def analyze_SED(m,simtype,data_dir,freq_in,T_e_csm,
 
     if simtype=='flare_flare':
         flare_list=['fwd','bwd']
-    elif simtype=='flare_ism' or simtype=='SNejecta_CSM':
+    else:
         flare_list=['fwd']
 
     # m = Model(data_dir+'shock_data.npz',simtype=simtype)
