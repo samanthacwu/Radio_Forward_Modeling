@@ -154,7 +154,7 @@ def analyze_SED(m,simtype,data_dir,freq_in,T_e_csm,
     #set gamma_e values
     gamma_e_vals, delta_gamma_e, d_ln_gamma = gamma_e_func(m.gamma_min,m.N_g,gamma_max=1e8)
     #set gamma_ph values
-    gamma_ph_vals = gamma_ph_func(gamma_ph_min=1.5e-18,gamma_ph_max=1.5,N_ph=256)
+    gamma_ph_vals = gamma_ph_func(gamma_ph_min=1.5e-18,gamma_ph_max=1.5,N_ph=1024)
     nu_ph_vals = nu_ph_func(gamma_ph_vals)  # in Hz
     freq_to_plot = freq_in*1e9 # Convert to Hz from GHz
 
