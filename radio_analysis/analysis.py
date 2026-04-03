@@ -119,7 +119,7 @@ def analyze_multiwavelength_spectrum(m,simtype,data_dir,freq_in,T_e_csm,dNdgamma
                 Lnu_atfreq=Lnu_atfreq,tau_ff_atfreq=tau_ff_atfreq,tau_ssa_atfreq=tau_ssa_atfreq,
                 times_yr=times_out/secinyear,Lnu_abs_atfreq=Lnu_abs_atfreq)
 
-def analyze_SED(m,simtype,data_dir,freq_in,T_e_csm,
+def analyze_SED(m,simtype,data_dir,T_e_csm,
                 epoch_list,dNdgamma_dir_in='',f_omega=1,tval_ind=1000,SED_interval=100):
     """
     Analyze multiwavelength spectrum evolution from simulation data.
@@ -127,7 +127,6 @@ def analyze_SED(m,simtype,data_dir,freq_in,T_e_csm,
     Parameters:
     simtype (str): Type of simulation ('flare_flare' or 'flare_ism').
     data_dir: Directory containing shock evolution data.
-    freq_in: Frequency to plot in GHz.
     Te_csm (float): Temperature of CSM in Kelvin.
     epoch_list: list of epochs to save SED data
     dNdgamma_dir: Directory containing electron spectrum data.
@@ -156,7 +155,6 @@ def analyze_SED(m,simtype,data_dir,freq_in,T_e_csm,
     #set gamma_ph values
     gamma_ph_vals = gamma_ph_func(gamma_ph_min=1.5e-18,gamma_ph_max=1.5,N_ph=1024)
     nu_ph_vals = nu_ph_func(gamma_ph_vals)  # in Hz
-    freq_to_plot = freq_in*1e9 # Convert to Hz from GHz
 
     for flarenum,flare in enumerate(flare_list):
         if flare == 'fwd':
@@ -173,11 +171,6 @@ def analyze_SED(m,simtype,data_dir,freq_in,T_e_csm,
         yvals=np.load(dNdgamma_dir+'/yvals.npz')['arr_0'].reshape((len(tvals),len(gamma_e_vals)))
         dNdgamma_vals = yvals * n0_t0 * m.rsh_t0**3
         print('normalization',n0_t0 * m.rsh_t0**3)
-    
-        # find closest frequency index to freq_to_plot
-        index_atfreq=np.argmin(np.abs(nu_ph_vals-freq_to_plot)/freq_to_plot )
-        nu_in = nu_ph_vals[index_atfreq] # 3 GHz
-        print('nu_in',nu_in,'given frequency',freq_to_plot)
 
 ##### Uncomment if want Peak Data ####
         fig=plt.figure()

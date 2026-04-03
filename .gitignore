@@ -179,3 +179,5 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 spectrum_evolution/evolve_spectrum_epsB_1e-2/shell_evolution_deltat_1yr/shock_data.npz
+examples/SNejecta_csm/3.68M_Porb1d/binary_history.data
+examples/SNejecta_csm/3.68M_Porb1d/history.data
