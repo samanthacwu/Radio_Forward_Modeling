@@ -30,14 +30,14 @@ def evolve_flares(M_flare,rho_ext_funcs,v_min_c,v_max_c,r_ins,r_outs,profile_tim
 				  data_dir='./evolve_spectrum/'):
 	"""
 		M_flare: flare mass in solar masses
-		rho_ext0s: (list of) ISM density scales in units of m_h= 10^{-24} g/cm^3. For power law ISM, should be scaled to r0=1e16 cm.
+		rho_ext_funcs: (list of) exterior medium density profile functions.
 		v_min_c: minimum flare velocity in units of c
 		v_max_c: maximum flare velocity in units of c
-		t0_in: initial time in years
+		r_ins: inner radii of the evolution
+		r_outs: outer radii of the evolution
+		profile_times_arr: assuming different rho_ext density profile functions represent different times, gives these times for labeling
+		stop_ratio: stop integration when t reaches stop_ratio*t0_in
 		p: power-law index of flare density profile
-		p_ism: power-law index of ISM density profile. use p=0 to study constant ISM density.
-		r0_ism: radius to normalize ISM density profile (in cm)
-		r_out: outer radius to integrate rho^2 for free-free absorption.
 		data_dir: directory to save output data
 	"""
 	# model parameters
@@ -88,9 +88,7 @@ def evolve_flares(M_flare,rho_ext_funcs,v_min_c,v_max_c,r_ins,r_outs,profile_tim
 		print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5/(2.-2.*p) * (1.-(v_max/v_min)**(2.*p-2.))))
 
 	for i, (rho_ext_func, r_in, r_out, profile_time) in enumerate(zip(rho_ext_funcs,r_ins,r_outs,profile_times_arr)):
-		
-		# r_out = r_out_func(rho_ext0,MBH=1e7,p=p_ism
-		
+
 		# initial conditions at collision
 		#v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
 		Msh_0 = 0.0
@@ -153,7 +151,7 @@ def evolve_flares(M_flare,rho_ext_funcs,v_min_c,v_max_c,r_ins,r_outs,profile_tim
 			# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
 			#just use some large radius instead here since v_max is not limiting the end of the flare in the ISM case
 			
-			r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(r_out), 100) #set r_out earlier to be ~pc scale?
+			r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(r_out), 100) 
 			rho1_gtr_rsh = [rho_ext_func(r)**2 for r in r_gtr_rsh]
 			# rho1_gtr_rsh = [rho_flare(r, t, A, v_min, v_max)**2 for r in r_gtr_rsh]
 			rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))

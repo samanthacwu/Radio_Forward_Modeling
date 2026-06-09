@@ -50,6 +50,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 		v_min_c: minimum flare velocity in units of c
 		v_max_c: maximum flare velocity in units of c
 		t0_in: initial time in years
+		stop_ratio: stop integration when t reaches stop_ratio*t0_in
 		p: power-law index of flare density profile
 		p_ism: power-law index of ISM density profile. use p=0 to study constant ISM density.
 		r0_ism: radius to normalize ISM density profile (in cm)
