@@ -94,7 +94,7 @@ def calc_dEintdt_shell(Eint, t, shock_velocity, radius_func, rho_func,f_omega=1)
 
     m_p = 1.67e-24 # g
     k_b = 1.38e-16 # erg/K
-    mu = 4./3.
+    mu = 4./3. # helium rich gas values (assuming fully ionized)
     T_down = (3.*mu*m_p/16./k_b)*(shock_velocity-v_CSM)**2
     rho_down = 4*rhoCSM_of_t
     Z = 2 #helium rich gas values
@@ -107,3 +107,33 @@ def calc_dEintdt_shell(Eint, t, shock_velocity, radius_func, rho_func,f_omega=1)
     # print('E_int',Eint,'v',shock_velocity)
     # print('term 1', f_omega*4*np.pi*radius**2*(2*(gamma+1)**(-2.))*rhoCSM_of_t*(shock_velocity-v_CSM)**3, 'term2', 2*Eint*shock_velocity/radius, 'term3', eps_ff*vol_fac)
     return f_omega*4*np.pi*radius**2*(2*(gamma+1)**(-2.))*rhoCSM_of_t*(shock_velocity-v_CSM)**3 - 2*Eint*shock_velocity/radius - eps_ff*vol_fac
+
+#for flares:
+def calc_dMdt_flare(Menc_of_t, t, shock_velocity, radius, v1, v2, rho1, rho2,f_omega=1):
+    #rho1, v1 are for forward shock; rho2,v2 are for backward shock
+    return f_omega*4*np.pi*radius**2*(rho2*(v2-shock_velocity) + rho1*(shock_velocity-v1))
+
+def calc_dvdt_flare(shock_velocity, t, Menc_of_t, Eint_of_t, radius, v1, v2, rho1, rho2,f_omega=1):
+    return f_omega*4*np.pi*radius**2*(rho2*(v2-shock_velocity)**2 - rho1*(shock_velocity-v1)**2) / Menc_of_t + 2*Eint_of_t/radius/Menc_of_t
+
+
+## add energy conservation to account for adiabatic PdV work and radiative cooling losses
+def calc_dEintdt_flare(Eint, t, shock_velocity, radius, v1, rho1,f_omega=1):
+
+    gamma = 5./3.
+
+    m_p = 1.67e-24 # g
+    k_b = 1.38e-16 # erg/K
+    mu = 0.5 #hydrogen rich gas values
+    T_down = (3.*mu*m_p/16./k_b)*(shock_velocity-v1)**2
+    rho_down = 4*rho1
+    Z = 1 #hydrogen rich gas values
+    n_e = rho_down/m_p #hydrogen rich gas values
+    n_i = rho_down/m_p #hydrogen rich gas values
+    g_B = 1.2
+    eps_ff = 1.4*10**(-27.) * T_down**0.5 * Z**2 * n_e * n_i * g_B
+    vol_fac = ((gamma-1)/(gamma+1)) * f_omega * 4*np.pi*radius**3/3
+    # print('T_down',T_down,'eps_ff',eps_ff,'n_e',n_e,'n_i',n_i,'rho_down',rho_down)
+    # print('E_int',Eint,'v',shock_velocity)
+    # print('term 1', f_omega*4*np.pi*radius**2*(2*(gamma+1)**(-2.))*rho1*(shock_velocity-v1)**3, 'term2', 2*Eint*shock_velocity/radius, 'term3', eps_ff*vol_fac)
+    return f_omega*4*np.pi*radius**2*(2*(gamma+1)**(-2.))*rho1*(shock_velocity-v1)**3 - 2*Eint*shock_velocity/radius - eps_ff*vol_fac

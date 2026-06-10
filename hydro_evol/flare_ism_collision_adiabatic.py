@@ -2,6 +2,9 @@ import os
 import math
 import numpy as np
 from matplotlib import pyplot as plt
+from functools import partial
+from radio_analysis.solvers import euler, RK4
+from .calcs import calc_dvdt_flare, calc_dMdt_flare, calc_dEintdt_flare, evolve_ODE
 try:
 	from scipy.integrate import simpson
 except:
@@ -121,6 +124,13 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 		rho_ism_init = rho_ism_func(rsh_0,rho_ism0,p=p_ism,r0=r0_ism) 
 		rho12_ratio = rho_flare_2_init/rho_ism_init
 		vsh_0 = (v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
+
+		v_fl_2_init = rsh_0/t0
+		# Msh_0 = 4.*math.pi*rsh_0**2*(rho_flare_2_init*(v_fl_2_init-vsh_0) + rho_ism_init*vsh_0) * dt_scale*rsh_0/vsh_0
+		Msh_0 = 0
+		#internal energy of shock
+		Eint_0 = 0.5*Msh_0*vsh_0**2 #  assumes KE=Eint
+
 		#vsh_0 = v_max 
 		print('Integrating to outer radius of r_out=',r_out/pc_cm, 'pc for rho_ism0 =', rho_ism0/1e-24, 'm_H', 'vsh_0 =', vsh_0/c, 'c')
 		print('A', A, 'rho12_ratio', rho12_ratio, 'rho2_0', rho_flare_2_init)
@@ -129,8 +139,10 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 		Msh = Msh_0
 		rsh = rsh_0
 		vsh = vsh_0
+		Eint = Eint_0
 		# initialize array
 		t_arr = np.array([])
+		dt_arr = np.array([])
 		Msh_arr = np.array([]) 
 		rsh_arr = np.array([])
 		vsh_arr = np.array([])
@@ -140,7 +152,8 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 		rho2_arr = np.array([])
 		rho1sq_int_arr = np.array([])
 		dMdt_arr = np.array([]) 
-		print("initial t: %s sec" % t)
+		Eint_arr = np.array([])
+		print("initial t: %s sec" % t, 'initial Msh',Msh_0/Msun,'initial Eint',Eint_0)
 		# solve shock propagation
 		while t < stop_ratio*t0:
 			# make sure shell doesn't expand too much at one timestep
@@ -156,13 +169,29 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 				v_fl_2 = rsh/t
 			# evolve
 			rsh_old = rsh # backup of rsh
-			dMdt_arr = np.append(dMdt_arr, 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_ism*vsh))
-			Msh += 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_ism*vsh) * dt
-			rsh += vsh * dt
-			vsh += (4.*math.pi*rsh_old**2/Msh) * (rho_fl_2*(v_fl_2-vsh)**2 - rho_ism*vsh**2) * dt
-			t += dt
-			# append
+			t_old = t
 			t_arr = np.append(t_arr, t)
+			dt_arr = np.append(dt_arr, dt)
+			#evolve
+			dMdt_arr = np.append(dMdt_arr, 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_ism*vsh))
+			f_of_t_dMdt = partial(calc_dMdt_flare,shock_velocity=vsh,radius=rsh,v1=0,v2=v_fl_2,rho1=rho_ism,rho2=rho_fl_2)
+			Msh, t = evolve_ODE(Msh,t_old,dt,f_of_t_dMdt,solver=RK4)
+			# Msh += 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_fl_1*(vsh-v_fl_1)) * (t-t_old)
+
+			#calculate internal energy in forward shock, assuming dissipation is dominated by forward shock interacting with next flare
+			f_of_t_dEdt = partial(calc_dEintdt_flare,shock_velocity=vsh,radius=rsh,v1=0,rho1=rho_ism)
+			Eint, t = evolve_ODE(Eint,t_old,dt,f_of_t_dEdt,solver=euler)
+			Eint = max(Eint,0) # make sure internal energy doesn't go negative
+			Eint_arr = np.append(Eint_arr, Eint) 
+			# Eint = 0
+
+			f_of_t_dvdt = partial(calc_dvdt_flare,Menc_of_t=Msh,Eint_of_t=Eint,radius=rsh,v1=0,v2=v_fl_2,rho1=rho_ism,rho2=rho_fl_2)
+			vsh, t = evolve_ODE(vsh,t_old,dt,f_of_t_dvdt,solver=RK4)
+
+			rsh += vsh*(t-t_old)
+
+			# append
+			# t_arr = np.append(t_arr, t)
 			Msh_arr = np.append(Msh_arr, Msh)
 			rsh_arr = np.append(rsh_arr, rsh)
 			vsh_arr = np.append(vsh_arr, vsh)
@@ -197,7 +226,7 @@ def evolve_flares(M_flare,rho_ism0s,v_min_c,v_max_c,t0_in=0.01,stop_ratio=11000,
 			deltav2_of_t=v2_arr-vsh_arr,
 			rho_ism=rho1_arr,
 			rho2_of_t=rho2_arr,
-			int_rhofl_1_sq_dr=rho1sq_int_arr
+			int_rhofl_1_sq_dr=rho1sq_int_arr,
 		)
 		
 		# plot v1, v2, vshell

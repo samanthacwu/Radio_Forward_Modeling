@@ -61,8 +61,8 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 	ax2.set_yscale('linear')
 
 	t_arr = np.linspace(0,100000)
-	ax2.plot(t_arr, np.ones(len(t_arr))*v_min/c, color='gray', linestyle='dashdot', label=r'$v_{\rm min}$')
-	ax2.plot(t_arr, np.ones(len(t_arr))*v_max/c, color='black', linestyle='dashdot', label=r'$v_{\rm max}$')
+	# ax2.plot(t_arr, np.ones(len(t_arr))*v_min/c, color='gray', linestyle='dashdot', label=r'$v_{\rm min}$')
+	# ax2.plot(t_arr, np.ones(len(t_arr))*v_max/c, color='black', linestyle='dashdot', label=r'$v_{\rm max}$')
 	for M_flare in M_flare_arr:
 		ax3.plot(t_arr, np.ones(len(t_arr))*M_flare/Msun, linestyle='dashdot', label=r'$M_{\rm flare}=$'+f'{M_flare/Msun:1.2E} $M_\odot$')
 	# ls_arr = ['solid', 'dashed', 'dotted']
@@ -106,6 +106,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 			vsh = vsh_0
 			# initialize array
 			t_arr = np.array([])
+			dt_arr = np.array([])
 			Msh_arr = np.array([]) 
 			rsh_arr = np.array([])
 			vsh_arr = np.array([])
@@ -134,6 +135,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				t += dt
 				# append
 				t_arr = np.append(t_arr, t)
+				dt_arr = np.append(dt_arr, dt)
 				Msh_arr = np.append(Msh_arr, Msh)
 				rsh_arr = np.append(rsh_arr, rsh)
 				vsh_arr = np.append(vsh_arr, vsh)
@@ -146,8 +148,11 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				rho1_gtr_rsh = [rho_flare(r, t+delta_t, A, v_min, v_max,p=p)**2 for r in r_gtr_rsh]
 				rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 			# plot evolution of shell parameters
+			print('Msh initial',Msh_arr[0]/Msun)
 			ax1.plot((t_arr-t0)/yr_to_sec, rsh_arr, color=color_array[i], label=r'$M_{\rm flare}=$'+f'{M_flare/Msun:1.2E} $M_\odot$, $\Delta t={delta_t/yr_to_sec:0.2f}$ yr')
 			ax2.plot((t_arr-t0)/yr_to_sec, vsh_arr/c, color=color_array[i])
+			ax2.plot((t_arr-t0)/yr_to_sec, (vsh_arr-v1_arr)/c, color=color_array[i],ls='--')
+			ax2.plot((t_arr-t0)/yr_to_sec, (v2_arr-vsh_arr)/c, color=color_array[i],ls=':')
 			ax3.plot((t_arr-t0)/yr_to_sec, Msh_arr/Msun, color=color_array[i])
 			ax4.plot((t_arr-t0)/yr_to_sec, dMdt_arr*yr_to_sec/Msun, color=color_array[i])
 			# save shell parameters
@@ -165,7 +170,10 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				deltav2_of_t=v2_arr-vsh_arr,
 				rho1_of_t=rho1_arr,
 				rho2_of_t=rho2_arr,
-				int_rhofl_1_sq_dr=rho1sq_int_arr
+				int_rhofl_1_sq_dr=rho1sq_int_arr,
+				Msh_of_t=Msh_arr,
+				dMshdt_of_t=dMdt_arr,
+				dt_arr=dt_arr
 			)
 			
 			# plot v1, v2, vshell

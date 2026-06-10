@@ -3,6 +3,9 @@ import os
 import math
 import numpy as np
 from matplotlib import pyplot as plt
+from functools import partial
+from radio_analysis.solvers import euler, RK4
+from .calcs import calc_dvdt_flare, calc_dMdt_flare, calc_dEintdt_flare, evolve_ODE
 try:
 	from scipy.integrate import simpson
 except:
@@ -61,8 +64,8 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 	ax2.set_yscale('linear')
 
 	t_arr = np.linspace(0,100000)
-	ax2.plot(t_arr, np.ones(len(t_arr))*v_min/c, color='gray', linestyle='dashdot', label=r'$v_{\rm min}$')
-	ax2.plot(t_arr, np.ones(len(t_arr))*v_max/c, color='black', linestyle='dashdot', label=r'$v_{\rm max}$')
+	# ax2.plot(t_arr, np.ones(len(t_arr))*v_min/c, color='gray', linestyle='dashdot', label=r'$v_{\rm min}$')
+	# ax2.plot(t_arr, np.ones(len(t_arr))*v_max/c, color='black', linestyle='dashdot', label=r'$v_{\rm max}$')
 	for M_flare in M_flare_arr:
 		ax3.plot(t_arr, np.ones(len(t_arr))*M_flare/Msun, linestyle='dashdot', label=r'$M_{\rm flare}=$'+f'{M_flare/Msun:1.2E} $M_\odot$')
 	# ls_arr = ['solid', 'dashed', 'dotted']
@@ -88,13 +91,17 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 			
 			# initial conditions at collision
 			t0 = v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
-			Msh_0 = 0.0
 			rsh_0 = v_min*v_max*delta_t / (v_max - v_min) # collision radii
 			# initial vsh set by pressure equilibrium
 			rho_flare_1_init = rho_flare(rsh_0, t0+delta_t, A, v_min, v_max,p=p)
 			rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max,p=p)
 			rho12_ratio = rho_flare_2_init/rho_flare_1_init
 			vsh_0 = (v_min + v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
+			v_fl_1_init = rsh_0/(t0+delta_t)
+			v_fl_2_init = rsh_0/t0
+			Msh_0 = 4.*math.pi*rsh_0**2*(rho_flare_2_init*(v_fl_2_init-vsh_0) + rho_flare_1_init*(vsh_0-v_fl_1_init)) * dt_scale*rsh_0/vsh_0
+			#internal energy of shock
+			Eint_0 = 0.5*Msh_0*vsh_0**2 # assumes KE=Eint
 
 			# print('A', A, 'rho12_ratio', rho12_ratio, 'rho2_0', rho_flare_2_init, 'rho1_0', rho_flare_1_init, 'vsh_0 (c)', vsh_0/c)
 			#vsh_0 = v_max 
@@ -104,8 +111,10 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 			Msh = Msh_0
 			rsh = rsh_0
 			vsh = vsh_0
+			Eint = Eint_0
 			# initialize array
 			t_arr = np.array([])
+			dt_arr = np.array([])
 			Msh_arr = np.array([]) 
 			rsh_arr = np.array([])
 			vsh_arr = np.array([])
@@ -115,7 +124,9 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 			rho2_arr = np.array([])
 			rho1sq_int_arr = np.array([])
 			dMdt_arr = np.array([]) 
-			print("initial t: %s sec" % t)
+			Eint_arr = np.array([])
+			print("initial t: %s sec" % t, 'initial Msh',Msh_0/Msun,'initial Eint',Eint_0)
+			
 			# solve shock propagation
 			while t < 1000*t0:
 				# make sure shell doesn't expand too much at one timestep
@@ -125,15 +136,32 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max,p=p)
 				v_fl_1 = rsh/(t+delta_t)
 				v_fl_2 = rsh/t
-				# evolve
+
+				# setup 
 				rsh_old = rsh # backup of rsh
-				dMdt_arr = np.append(dMdt_arr, 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_fl_1*(vsh-v_fl_1)))
-				Msh += 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_fl_1*(vsh-v_fl_1)) * dt
-				rsh += vsh * dt
-				vsh += (4.*math.pi*rsh_old**2/Msh) * (rho_fl_2*(v_fl_2-vsh)**2 - rho_fl_1*(vsh-v_fl_1)**2) * dt
-				t += dt
-				# append
+				t_old = t
 				t_arr = np.append(t_arr, t)
+				dt_arr = np.append(dt_arr, dt)
+				#evolve
+				dMdt_arr = np.append(dMdt_arr, 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_fl_1*(vsh-v_fl_1)))
+				f_of_t_dMdt = partial(calc_dMdt_flare,shock_velocity=vsh,radius=rsh,v1=v_fl_1,v2=v_fl_2,rho1=rho_fl_1,rho2=rho_fl_2)
+				Msh, t = evolve_ODE(Msh,t_old,dt,f_of_t_dMdt,solver=RK4)
+				# Msh += 4.*math.pi*rsh**2*(rho_fl_2*(v_fl_2-vsh) + rho_fl_1*(vsh-v_fl_1)) * (t-t_old)
+
+				#calculate internal energy in forward shock, assuming dissipation is dominated by forward shock interacting with next flare
+				f_of_t_dEdt = partial(calc_dEintdt_flare,shock_velocity=vsh,radius=rsh,v1=v_fl_1,rho1=rho_fl_1)
+				Eint, t = evolve_ODE(Eint,t_old,dt,f_of_t_dEdt,solver=RK4)
+				Eint = max(Eint,0) # make sure internal energy doesn't go negative
+				Eint_arr = np.append(Eint_arr, Eint) 
+				# Eint = 0
+
+				f_of_t_dvdt = partial(calc_dvdt_flare,Menc_of_t=Msh,Eint_of_t=Eint,radius=rsh,v1=v_fl_1,v2=v_fl_2,rho1=rho_fl_1,rho2=rho_fl_2)
+				vsh, t = evolve_ODE(vsh,t_old,dt,f_of_t_dvdt,solver=RK4)
+
+				rsh += vsh*(t-t_old)
+				
+				# append
+				# t_arr = np.append(t_arr, t)
 				Msh_arr = np.append(Msh_arr, Msh)
 				rsh_arr = np.append(rsh_arr, rsh)
 				vsh_arr = np.append(vsh_arr, vsh)
@@ -146,8 +174,11 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				rho1_gtr_rsh = [rho_flare(r, t+delta_t, A, v_min, v_max,p=p)**2 for r in r_gtr_rsh]
 				rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 			# plot evolution of shell parameters
+			print('Msh initial',Msh_arr[0]/Msun)
 			ax1.plot((t_arr-t0)/yr_to_sec, rsh_arr, color=color_array[i], label=r'$M_{\rm flare}=$'+f'{M_flare/Msun:1.2E} $M_\odot$, $\Delta t={delta_t/yr_to_sec:0.2f}$ yr')
 			ax2.plot((t_arr-t0)/yr_to_sec, vsh_arr/c, color=color_array[i])
+			ax2.plot((t_arr-t0)/yr_to_sec, (vsh_arr-v1_arr)/c, color=color_array[i],ls='--')
+			ax2.plot((t_arr-t0)/yr_to_sec, (v2_arr-vsh_arr)/c, color=color_array[i],ls=':')
 			ax3.plot((t_arr-t0)/yr_to_sec, Msh_arr/Msun, color=color_array[i])
 			ax4.plot((t_arr-t0)/yr_to_sec, dMdt_arr*yr_to_sec/Msun, color=color_array[i])
 			# save shell parameters
@@ -165,7 +196,10 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				deltav2_of_t=v2_arr-vsh_arr,
 				rho1_of_t=rho1_arr,
 				rho2_of_t=rho2_arr,
-				int_rhofl_1_sq_dr=rho1sq_int_arr
+				int_rhofl_1_sq_dr=rho1sq_int_arr,
+				Msh_of_t=Msh_arr,
+				dMshdt_of_t=dMdt_arr,
+				dt_arr=dt_arr
 			)
 			
 			# plot v1, v2, vshell
