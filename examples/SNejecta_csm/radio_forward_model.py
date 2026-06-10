@@ -33,7 +33,7 @@ hydro_evol.evolve_ejectaCSM_shock(path_to_output+'density_prof.npz',path_to_outp
 m = Model(path_to_output+'shock_data.npz',simtype='SNejecta_CSM',X_H=0,X_He=1,calculate_SBO=True,integrated_Bfield=True) #here can specify eps_B, eps_E, f_omega.
 print(m.times,m.times[0]/secinyear,m.times[-1]/secinyear)
 
-##the next line calculates the electron spectrum at each time time
+##the next line calculates the electron spectrum at each time
 
 spec_evol.evolve_spectrum(m,'SNejecta_CSM',path_to_output,t0_in=1.01*m.times[0]/secinyear,tf_in=0.99*m.times[-1]/secinyear,max_step_in=100000,print_int=10000,plotting=False)
 
