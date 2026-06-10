@@ -9,8 +9,8 @@ Msun = 1.989e33
 yr_to_sec = 3.156e7
 plt.style.use('/Users/samwu/codes/current_projects/Radio_Forward_Modeling/plot_styles.mplstyle_new')
 
-path_to_data = './evolve_spectrum_adiabatic/shell_evolution_Mflare_1E-02_pISM_0_rhoISM0_1E+01m_H/shock_data.npz'
-path_to_data_old = './evolve_spectrum/shell_evolution_Mflare_1E-02_pISM_0_rhoISM0_1E+01m_H/shock_data.npz'
+path_to_data = './evolve_spectrum_adiabatic/shell_evolution_Mflare_1E-02_pISM_0_rhoISM0_1E+03m_H/shock_data.npz'
+path_to_data_old = './evolve_spectrum/shell_evolution_Mflare_1E-02_pISM_0_rhoISM0_1E+03m_H/shock_data.npz'
 
 fig, ax = plt.subplots(3,1, figsize=(5, 10))
 
@@ -52,20 +52,21 @@ ax[0].set_xlabel('time (yr)')
 ax[0].set_ylabel('shock radius (cm)')
 ax[0].set_yscale('log')
 ax[0].set_xscale('log')
-ax[0].set_xlim(1e-1,100)
+ax[0].set_xlim(1e-3,100)
 
 ax[1].set_xlabel('time (yr)')
 ax[1].set_ylabel('shock velocity (c)')
 ax[1].set_yscale('log')
 ax[1].set_xscale('log')
-ax[1].set_xlim(1e-1,100)
+ax[1].set_xlim(1e-3,100)
 
 ax[2].set_xlabel('time (yr)')
 ax[2].set_ylabel('density (g/cm^3)')
 # ax[2].set_ylabel(r'$dM_{\rm sh}$ (Msun)')
 ax[2].set_yscale('log')
 ax[2].set_xscale('log')
-ax[2].set_xlim(1e-1,100)
+ax[2].set_xlim(1e-3,100)
+# ax[2].set_ylim()
 
 # ax[3].set_xlabel('time (yr)')
 # ax[3].set_ylabel('enclosed mass (Msun)')

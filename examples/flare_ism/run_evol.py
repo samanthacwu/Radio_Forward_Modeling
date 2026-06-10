@@ -2,7 +2,7 @@ import sys
 sys.path.append('/Users/samwu/codes/current_projects/Radio_Forward_Modeling/')
 import numpy as np
 import os
-import hydro_evol.flare_ism_collision_adiabatic as fic
+import hydro_evol.flare_ism_collision as fic
 import radio_analysis.spectrum_evolution as spec_evol
 from radio_analysis.analysis import analyze_multiwavelength_spectrum, analyze_SED
 from hydro_evol.model import Model
@@ -16,7 +16,7 @@ r_out = r_infl(1e7) # r_out in pc_cm. currently using the sphere of influence of
 print('using r_out =', r_out/pc_cm,'pc')
 
 #implicitly assuming eps_B=eps_E=0.1, electron spectrum power law p=3
-fic.evolve_flares(M_flare=0.01,rho_ism0s=[1e1],v_min_c=0.04,v_max_c=0.4,t0_in=0.001,stop_ratio=110000,p=0.5,p_ism=0,r_out=r_out,data_dir='./evolve_spectrum_adiabatic/')
+fic.evolve_flares(M_flare=0.01,rho_ism0s=[1e0,1e1,1e2,1e3],v_min_c=0.04,v_max_c=0.4,t0_in=0.001,stop_ratio=110000,p=0.5,p_ism=0,r_out=r_out,data_dir='./evolve_spectrum/')
 # fic.evolve_flares(M_flare=0.01,rho_ism0s=[1e0,3e0,1e1,1e2,1e3,1e4],v_min_c=0.04,v_max_c=0.4,t0_in=0.001,stop_ratio=110000,p=0.5,p_ism=0,r_out=r_out,data_dir='./evolve_spectrum/')
 
 # for i,dirname in enumerate(os.listdir('./evolve_spectrum/')):
