@@ -68,9 +68,9 @@ def analyze_multiwavelength_spectrum(m,simtype,data_dir,freq_in,T_e_csm,dNdgamma
         nu_in = nu_ph_vals[index_atfreq] # 3 GHz
         print('nu_in',nu_in,'given frequency',freq_to_plot)
 
-        plt.figure()
-        colors = plt.cm.viridis(np.linspace(0,1,15))
-        count = 0
+        # plt.figure()
+        # colors = plt.cm.viridis(np.linspace(0,1,15))
+        # count = 0
         tau_ff_atfreq= np.zeros_like(tvals)
         Lnu_atfreq = np.zeros_like(tvals)
         tau_ssa_atfreq = np.zeros_like(tvals)
@@ -97,17 +97,17 @@ def analyze_multiwavelength_spectrum(m,simtype,data_dir,freq_in,T_e_csm,dNdgamma
         tau_ssa_atfreq_term[np.isnan(tau_ssa_atfreq_term)] = 0.0 # handle 0/0 case
         Lnu_atfreq[np.isnan(Lnu_atfreq)] = 0.0
         Lnu_abs_atfreq = Lnu_atfreq*np.exp(-tau_ff_atfreq)*tau_ssa_atfreq_term
-        print(np.amax(Lnu_atfreq),np.amin(Lnu_atfreq))
-        plt.plot(times_out/secinyear,Lnu_abs_atfreq)
+        # print(np.amax(Lnu_atfreq),np.amin(Lnu_atfreq))
+        # plt.plot(times_out/secinyear,Lnu_abs_atfreq)
         #,color=colors[int((count-7000)/600)])
-        plt.yscale('log')
-        plt.xscale('log')
-        plt.xlim(1e-2,2e2)
-        plt.ylim(1e10,1e30)
+        # plt.yscale('log')
         # plt.xscale('log')
-        plt.xlabel('Time (yr)')
-        plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
-        plt.title(f'Emission at {freq_to_plot/1e9:1.2f} GHz')
+        # plt.xlim(1e-2,2e2)
+        # plt.ylim(1e10,1e30)
+        # plt.xscale('log')
+        # plt.xlabel('Time (yr)')
+        # plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
+        # plt.title(f'Emission at {freq_to_plot/1e9:1.2f} GHz')
         # plt.ylim(1e20,1e30)
         # plt.xlim(1e-2,1000)
         # plt.axvspan(2,4,color='gray',alpha=0.5)
@@ -173,7 +173,7 @@ def analyze_SED(m,simtype,data_dir,T_e_csm,
         print('normalization',n0_t0 * m.rsh_t0**3)
 
 ##### Uncomment if want Peak Data ####
-        fig=plt.figure()
+        # fig=plt.figure()
 
         norm = LogNorm(vmin=tvals[tval_ind]*m.tdyn_t0/secinyear, vmax=tvals[-1]*m.tdyn_t0/secinyear)
         count = 0
@@ -196,26 +196,26 @@ def analyze_SED(m,simtype,data_dir,T_e_csm,
                 plt.plot(nu_ph_vals/1e9,Lnu_spectrum,color=plt.cm.viridis(norm(t*m.tdyn_t0/secinyear)))
                 
             count +=1
-        plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
-        plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
-        plt.colorbar(sm,label='Time (yr)')
-        plt.yscale('log')
-        plt.xscale('log')
-        plt.legend()
-        plt.xlim(1e-6,1e8)
-        plt.ylim(1e10,1e30)
-        plt.xlabel(r'$\nu$ (GHz)')
-        plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
-        plt.savefig(f'Radio_curves_vs_frequency_{flarenum+1}.png',dpi=300,transparent=False,facecolor='white')
+        # plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
+        # plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
+        # sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
+        # plt.colorbar(sm,label='Time (yr)')
+        # plt.yscale('log')
+        # plt.xscale('log')
+        # plt.legend()
+        # plt.xlim(1e-6,1e8)
+        # plt.ylim(1e10,1e30)
+        # plt.xlabel(r'$\nu$ (GHz)')
+        # plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
+        # plt.savefig(f'Radio_curves_vs_frequency_{flarenum+1}.png',dpi=300,transparent=False,facecolor='white')
 
         np.savez(dNdgamma_dir+f'peak_data.npz',Lnu_pk=np.array(Lnu_pkvals),t_pk=np.array(t_pkvals),nu_pk=np.array(nu_pkvals))
 
 
     #### To plot SED at specific epochs ####
-        fig=plt.figure()
+        # fig=plt.figure()
         norm = LogNorm(vmin=epoch_list[0], vmax=epoch_list[-1])
-        print("Plotting SED at epochs (days)", epoch_list)
+        # print("Plotting SED at epochs (days)", epoch_list)
         times_list = []
         count_list = []
 
@@ -234,18 +234,18 @@ def analyze_SED(m,simtype,data_dir,T_e_csm,
             tau_ff_test = tau_ff(m.int_rhofwd_sq_dr_func(tvals[count]*m.tdyn_t0),nu_ph_vals,T_e_csm=T_e_csm)
             Lnu_spectrum = Lnu_test*np.exp(-tau_ff_test)*(1-np.exp(-tau_ssa_test))/tau_ssa_test
             SEDs_to_save_dict[f'epoch_{epoch}'] = Lnu_spectrum
-            plt.plot(nu_ph_vals/1e9,Lnu_spectrum,color=plt.cm.viridis(norm(t*m.tdyn_t0/secinday)),label=f'{epoch:.1f} days'.format(epoch=epoch))
+            # plt.plot(nu_ph_vals/1e9,Lnu_spectrum,color=plt.cm.viridis(norm(t*m.tdyn_t0/secinday)),label=f'{epoch:.1f} days'.format(epoch=epoch))
             count +=1
-        plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
-        plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
-        sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
-        plt.colorbar(sm,label='Time (day)')
-        plt.yscale('log')
-        plt.xscale('log')
-        plt.legend()
-        plt.xlim(1e-6,1e8)
-        plt.ylim(1e10,1e30)
-        plt.xlabel(r'$\nu$ (GHz)')
-        plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
-        plt.savefig(f'SED_at_epochs_{flarenum+1}.png',dpi=300,transparent=False,facecolor='white')
+        # plt.plot(nu_ph_vals/1e9,1e30*(nu_ph_vals/1e9)**(-1.5),color='black',ls='--',label=r'$\nu^{-1.5}$')
+        # plt.plot(nu_ph_vals/1e9,1e26*(nu_ph_vals/1e9)**(-1),color='grey',ls='--',label=r'$\nu^{-1}$')
+        # sm = plt.cm.ScalarMappable(cmap=plt.cm.viridis, norm=norm)
+        # plt.colorbar(sm,label='Time (day)')
+        # plt.yscale('log')
+        # plt.xscale('log')
+        # plt.legend()
+        # plt.xlim(1e-6,1e8)
+        # plt.ylim(1e10,1e30)
+        # plt.xlabel(r'$\nu$ (GHz)')
+        # plt.ylabel(r'$L_{\nu}$ (erg/s/Hz)')
+        # plt.savefig(f'SED_at_epochs_{flarenum+1}.png',dpi=300,transparent=False,facecolor='white')
         np.savez(dNdgamma_dir+f'SED_data.npz',SED_vs_epoch=SEDs_to_save_dict)
