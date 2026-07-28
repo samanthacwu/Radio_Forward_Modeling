@@ -33,7 +33,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,s=0.5,data_dir='./evolve_spe
 		delta_ts: (list of) time between flares in years
 		v_min_c: minimum flare velocity in units of c
 		v_max_c: maximum flare velocity in units of c
-		p: power-law index of flare density profile
+		s: power-law index of flare density profile
 		data_dir: directory to save output data
 		dt_scale: set dt = dt_scale*(rsh/vsh) at each timestep to make sure shell doesn't expand too much at one timestep.
 	"""
@@ -73,7 +73,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,s=0.5,data_dir='./evolve_spe
 	############# MAIN #################
 
 	# sanity checks
-	assert s>0 # p=0 will lead to no mass ejection. p<0 is unphysical.
+	assert s>0 # s=0 will lead to no mass ejection. s<0 is unphysical.
 	assert v_max > v_min
 	for i,delta_t in enumerate(deltat_arr):
 		for j,M_flare in enumerate(M_flare_arr):
@@ -83,7 +83,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,s=0.5,data_dir='./evolve_spe
 			# obtain normalization of flare density profile
 			A = M_flare*(2.*s)/(4.*math.pi*v_max**3) / ((v_max/v_min)**(2.*s) - 1.)
 
-			# output kinetic energy. when p=1 the integration is a bit different
+			# output kinetic energy. when s=1 the integration is a bit different
 			if s == 1:
 				print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5*math.log(v_max/v_min)))
 			else:
