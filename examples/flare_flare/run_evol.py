@@ -12,7 +12,7 @@ from hydro_evol.constants_list import *
 #### run this line to get the file shock_data.npz in each directory, which contains the properties of the shock vs. time
 #### remember to create the directory input to data_dir if it doesn't exist yet.
 
-ffc.evolve_flares(M_flares=[0.1],delta_ts=[0.1,0.2],v_min_c=0.04,v_max_c=0.4,p=0.5,data_dir='./evolve_spectrum_adiabatic/',dt_scale=1e-3)
+ffc.evolve_flares(M_flares=[0.1],delta_ts=[0.1,0.2],v_min_c=0.04,v_max_c=0.4,s=0.5,data_dir='./evolve_spectrum_adiabatic/',dt_scale=1e-3)
 #implicitly assuming eps_B=eps_E=0.1, electron spectrum power law p=3
 
 #### can run again for larger flare mass if necessary

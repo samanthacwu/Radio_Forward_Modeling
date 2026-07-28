@@ -20,14 +20,14 @@ Msun = 1.989e33
 yr_to_sec = 3.156e7
 
 # flare density profile
-def rho_flare(r, t, A_norm, v_min, v_max,p=0.5): 
+def rho_flare(r, t, A_norm, v_min, v_max,s=0.5): 
 	# only exists for v_min < v=r/t < v_max
 	if r/t < v_min or r/t > v_max:
 		return 0.
 	else:
-		return A_norm/t**3 * (r/v_max/t)**(-2.*p-3.)
+		return A_norm/t**3 * (r/v_max/t)**(-2.*s-3.)
 
-def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spectrum/',dt_scale=1e-3):
+def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,s=0.5,data_dir='./evolve_spectrum/',dt_scale=1e-3):
 	"""
 		M_flares: (list of) flare masses in solar masses
 		delta_ts: (list of) time between flares in years
@@ -73,7 +73,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 	############# MAIN #################
 
 	# sanity checks
-	assert p>0 # p=0 will lead to no mass ejection. p<0 is unphysical.
+	assert s>0 # p=0 will lead to no mass ejection. p<0 is unphysical.
 	assert v_max > v_min
 	for i,delta_t in enumerate(deltat_arr):
 		for j,M_flare in enumerate(M_flare_arr):
@@ -81,20 +81,20 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 			print(delta_t,M_flare)
 
 			# obtain normalization of flare density profile
-			A = M_flare*(2.*p)/(4.*math.pi*v_max**3) / ((v_max/v_min)**(2.*p) - 1.)
+			A = M_flare*(2.*s)/(4.*math.pi*v_max**3) / ((v_max/v_min)**(2.*s) - 1.)
 
 			# output kinetic energy. when p=1 the integration is a bit different
-			if p == 1:
+			if s == 1:
 				print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5*math.log(v_max/v_min)))
 			else:
-				print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5/(2.-2.*p) * (1.-(v_max/v_min)**(2.*p-2.))))
+				print('kinetic energy: %g erg' % (2.*math.pi*A*v_max**5/(2.-2.*s) * (1.-(v_max/v_min)**(2.*s-2.))))
 			
 			# initial conditions at collision
 			t0 = v_min*delta_t / (v_max - v_min) # t defined as time from launch of later flare 
 			rsh_0 = v_min*v_max*delta_t / (v_max - v_min) # collision radii
 			# initial vsh set by pressure equilibrium
-			rho_flare_1_init = rho_flare(rsh_0, t0+delta_t, A, v_min, v_max,p=p)
-			rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max,p=p)
+			rho_flare_1_init = rho_flare(rsh_0, t0+delta_t, A, v_min, v_max,s=s)
+			rho_flare_2_init = rho_flare(rsh_0, t0, A, v_min, v_max,s=s)
 			rho12_ratio = rho_flare_2_init/rho_flare_1_init
 			vsh_0 = (v_min + v_max * math.sqrt(rho12_ratio)) / (1. + math.sqrt(rho12_ratio))
 			v_fl_1_init = rsh_0/(t0+delta_t)
@@ -132,8 +132,8 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				# make sure shell doesn't expand too much at one timestep
 				dt = dt_scale*(rsh/vsh)
 				# get current rho_flare
-				rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max,p=p)
-				rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max,p=p)
+				rho_fl_1 = rho_flare(rsh, t+delta_t, A, v_min, v_max,s=s)
+				rho_fl_2 = rho_flare(rsh, t, A, v_min, v_max,s=s)
 				v_fl_1 = rsh/(t+delta_t)
 				v_fl_2 = rsh/t
 
@@ -171,7 +171,7 @@ def evolve_flares(M_flares,delta_ts,v_min_c,v_max_c,p=0.5,data_dir='./evolve_spe
 				rho2_arr = np.append(rho2_arr, rho_fl_2)
 				# integrated rho^2 for flare 1 outside rsh (used for free-free absorption)
 				r_gtr_rsh = np.logspace(math.log10(rsh), math.log10(v_max*t+delta_t), 100)
-				rho1_gtr_rsh = [rho_flare(r, t+delta_t, A, v_min, v_max,p=p)**2 for r in r_gtr_rsh]
+				rho1_gtr_rsh = [rho_flare(r, t+delta_t, A, v_min, v_max,s=s)**2 for r in r_gtr_rsh]
 				rho1sq_int_arr = np.append(rho1sq_int_arr, simpson(rho1_gtr_rsh, r_gtr_rsh))
 			# plot evolution of shell parameters
 			print('Msh initial',Msh_arr[0]/Msun)
