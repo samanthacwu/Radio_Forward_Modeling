@@ -13,9 +13,9 @@ plt.style.use('tableau-colorblind10')
 color_array = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
 # constants
-c = 2.9989e10
+c = 2.99792e10
 Msun = 1.989e33
-yr_to_sec = 3.156e7
+yr_to_sec = 3.154e7
 pc_cm = 3.086e18 # cm in a parsec
 
 def rho_flare(r, t, A_norm, v_min, v_max,p=0.5): 

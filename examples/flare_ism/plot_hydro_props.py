@@ -4,9 +4,9 @@ import sys
 sys.path.append('/Users/samwu/codes/current_projects/Radio_Forward_Modeling/')
 from scipy.interpolate import interp1d
 # constants
-c = 2.9989e10
+c = 2.99792e10
 Msun = 1.989e33
-yr_to_sec = 3.156e7
+yr_to_sec = 3.154e7
 plt.style.use('/Users/samwu/codes/current_projects/Radio_Forward_Modeling/plot_styles.mplstyle_new')
 
 path_to_data = './evolve_spectrum_adiabatic/shell_evolution_Mflare_1E-02_pISM_0_rhoISM0_1E+03m_H/shock_data.npz'
